@@ -9,8 +9,8 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 
-db = SQLAlchemy()
-migrate = Migrate()     
+# db = SQLAlchemy()
+# migrate = Migrate()     
 # login_manager = LoginManager()
 
 def create_app():
