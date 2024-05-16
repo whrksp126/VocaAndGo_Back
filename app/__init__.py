@@ -27,8 +27,11 @@ def create_app():
     # with app.app_context():
         # db.create_all()    
         
-    from app.routes.login import login_bp
+    # from app.routes.login import login_bp
     
-    app.register_blueprint(login_bp)
+    # app.register_blueprint(login_bp)
+    @app.route('/')
+    def index():
+        return 'Hello, World!'
     
     return app
