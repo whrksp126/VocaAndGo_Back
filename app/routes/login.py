@@ -50,7 +50,6 @@ def login_google():
 # 인증 콜백 라우트: OAuth2 인증 완료 후 실행
 @login_bp.route('/login_google/callback')
 def authorize_google():
-    print("comming??????????????????????")
     # 상태(state)를 가져옴
     state = session.pop('oauth_state', None)
 
