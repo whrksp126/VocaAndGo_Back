@@ -17,7 +17,7 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
 @login_bp.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('login.html')
 
 
 # 로그인 라우트: 구글 OAuth2 인증 요청
@@ -50,6 +50,7 @@ def login_google():
 # 인증 콜백 라우트: OAuth2 인증 완료 후 실행
 @login_bp.route('/login_google/callback')
 def authorize_google():
+    print("comming??????????????????????")
     # 상태(state)를 가져옴
     state = session.pop('oauth_state', None)
 
