@@ -41,7 +41,6 @@ def login_google():
 
     # 상태(state)를 세션에 저장
     session['oauth_state'] = state
-    print("@@@state", state)
 
     return redirect(authorization_url)
 
@@ -78,46 +77,12 @@ def authorize_google():
 
     # 토큰에서 사용자 정보 추출
     userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
-    email = userinfo['email']
     print("@@@userinfo", userinfo)
 
     # 토큰 정보를 세션에 저장
     session['token'] = token
 
     return "Authentication Successful!"
-
-
-# # 회원가입 라우트
-# @main_bp.route('/register', methods=['GET', 'POST'])
-# def register():
-#     # 회원가입 양식 제출 처리
-#     if request.method == 'POST':
-#         # 세션에서 사용자 정보 가져오기
-#         userinfo = session.get('oauth_userinfo')
-#         if not userinfo:
-#             return "Error: No userinfo found", 400
-
-#         # 이메일과 기타 정보 추출
-#         email = userinfo['email']
-#         # 추가 필요한 사용자 정보가 있다면 여기에서 추출
-
-#         # 사용자 생성
-#         new_user = User(email=email)
-#         # 기타 정보가 있다면 여기에서 추가
-
-#         db.session.add(new_user)
-#         db.session.commit()
-
-#         # 회원가입 후 로그인
-#         login_user(new_user)
-
-#         # 회원가입 완료 후, 세션에서 사용자 정보 제거
-#         session.pop('oauth_userinfo', None)
-
-#         return "Registration Successful!"
-
-#     # GET 요청일 경우 회원가입 양식 보여주기 => 쓸 일 없음
-#     return render_template('register.html')
 
 
 @login_bp.route('/backup')
