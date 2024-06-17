@@ -16,7 +16,7 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
 @login_bp.route('/')
 def index():
-    return render_template('main_login.html')
+    return render_template('/main_login.html')
 
 
 # 로그인 라우트: 구글 OAuth2 인증 요청
