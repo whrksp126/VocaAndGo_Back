@@ -33,6 +33,8 @@ class BinaryUUID(TypeDecorator):
 class User(db.Model):
     __tablename__ = 'user'
     id = Column(BinaryUUID, primary_key=True, default=uuid4)
+    email = Column(String(32), nullable=False) 
+    google_id = Column(String(32), nullable=False)
     name = Column(String(32), nullable=False)
     phone = Column(String(16), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

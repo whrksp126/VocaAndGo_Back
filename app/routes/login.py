@@ -84,6 +84,36 @@ def authorize_google():
     # 토큰 정보를 세션에 저장
     session['token'] = token
 
+
+
+
+
+
+
+    # 사용자 정보 확인
+    user = User.query.filter_by(google_id=userinfo['id']).first()
+    
+    if user is None:
+        print("comming!!!")
+        print("userinfo", userinfo['id'])
+        # 사용자가 존재하지 않으면 회원가입 처리
+        new_user = User(
+            email=userinfo['email'],
+            name=userinfo.get('name', ''),
+            google_id=userinfo['id']
+        )
+        session.add(new_user)
+        session.commit()
+        user = new_user
+
+    # 사용자 정보를 세션에 저장
+    session['user_id'] = user.id
+
+
+
+
+
+
     return "Authentication Successful!"
 
 
