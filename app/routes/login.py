@@ -1,5 +1,7 @@
 from flask import render_template, redirect, url_for, request, session, jsonify
 from app.routes import login_bp
+from app.models.models import User
+
 # from flask_login import current_user, login_required, login_user
 
 import json
@@ -14,7 +16,6 @@ from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBase
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
-from models.models import User
 
 @login_bp.route('/')
 def index():
