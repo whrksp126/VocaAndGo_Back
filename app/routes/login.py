@@ -14,7 +14,7 @@ from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBase
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
-from models.models import User
+from app.models.models import User
 
 @login_bp.route('/')
 def index():
