@@ -36,7 +36,7 @@ class User(db.Model):
     email = Column(String(32), nullable=False) 
     google_id = Column(String(32), nullable=False)
     name = Column(String(32), nullable=False)
-    phone = Column(String(16), nullable=False)
+    phone = Column(String(16), nullable=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_logged_at = Column(DateTime, nullable=True, default=None)
 
