@@ -101,8 +101,9 @@ def authorize_google():
         # 사용자가 존재하지 않으면 회원가입 처리
         new_user = User(
             email=userinfo['email'],
+            google_id=userinfo['id'],
             name=userinfo.get('name', ''),
-            google_id=userinfo['id']
+            phone=None
         )
         session.add(new_user)
         session.commit()
