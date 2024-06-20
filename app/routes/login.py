@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, request, session, jsonify
 from app.routes import login_bp
-from app.models.models import User
+from app.models import User
 
 # from flask_login import current_user, login_required, login_user
 
