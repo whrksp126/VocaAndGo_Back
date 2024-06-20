@@ -107,8 +107,8 @@ def authorize_google():
     #     session.commit()
     #     user = new_user
 
-    # 사용자 정보를 세션에 저장
-    session['user_id'] = user.id
+    # # 사용자 정보를 세션에 저장
+    # session['user_id'] = user.id
 
 
 
