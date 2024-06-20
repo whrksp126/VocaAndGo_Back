@@ -94,6 +94,7 @@ def authorize_google():
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=userinfo['id']).first()
     
+    print('@@@@@useruserinfo',userinfo)
     if user is None:
         print("comming!!!")
         print("userinfo", userinfo['id'])
