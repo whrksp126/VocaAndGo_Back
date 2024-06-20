@@ -3,10 +3,10 @@ from app import db
 from app.routes import login_bp
 from app.models.models import User
 
-# from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user
 
 import json
-
+from werkzeug.security import generate_password_hash, check_password_hash
 
 import io
 import json
@@ -110,7 +110,7 @@ def authorize_google():
 
     # 사용자 정보를 세션에 저장
     session['user_id'] = user.id
-
+    login_user(user)
 
 
 
@@ -119,6 +119,7 @@ def authorize_google():
 
 
 @login_bp.route('/backup')
+@login_required
 def backup():
     # if 'credentials' not in session:
         # return redirect(url_for('login'))
