@@ -19,7 +19,7 @@ def create_app():
     migrate.init_app(app, db)
     
     # 모든 모델 클래스들을 한번에 import
-    # from app import models
+    from app.models import models
     
     with app.app_context():
         db.create_all()    
