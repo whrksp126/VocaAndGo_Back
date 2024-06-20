@@ -1,4 +1,5 @@
 from flask import render_template, redirect, url_for, request, session, jsonify
+from app import db
 from app.routes import login_bp
 from app.models.models import User
 
@@ -89,8 +90,6 @@ def authorize_google():
 
 
 
-
-
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=userinfo['id']).first()
     
@@ -105,13 +104,12 @@ def authorize_google():
             name=userinfo.get('name', ''),
             phone=None
         )
-        session.add(new_user)
-        session.commit()
+        db.session.add(new_user)
+        db.session.commit()
         user = new_user
 
     # 사용자 정보를 세션에 저장
     session['user_id'] = user.id
-
 
 
 
