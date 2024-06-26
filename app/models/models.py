@@ -48,3 +48,24 @@ class User(db.Model):
     
     def is_active(self):
         return True
+
+
+# 단어
+class Word(db.Model):
+    __tablename__ = 'word'
+    id = Column(Integer, primary_key=True)
+    word = Column(String(200), nullable=True)
+    pronunciation = Column(String(200), nullable=True)
+    example = Column(String(500), nullable=True)
+    created_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+
+
+# 단어뜻
+class Meaning(db.Model):
+    __tablename__ = 'meaning'
+    id = Column(Integer, primary_key=True)
+    meaning = Column(String(200), nullable=True)
+    created_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)
+    word_id = Column(Integer, ForeignKey('word.id'), nullable=True)
