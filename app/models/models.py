@@ -45,3 +45,6 @@ class User(db.Model):
         self.google_id = google_id
         self.name = name
         self.phone = phone
+    
+    def is_active(self):
+        return True
