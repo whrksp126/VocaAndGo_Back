@@ -11,12 +11,14 @@ from sqlalchemy import create_engine, text
 
 db = SQLAlchemy()
 migrate = Migrate()     
+login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
     migrate.init_app(app, db)
+    login_manager.init_app(app)
     
     # 모든 모델 클래스들을 한번에 import
     from app.models import models
