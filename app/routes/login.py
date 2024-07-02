@@ -86,10 +86,6 @@ def authorize_google():
     # 토큰 정보를 세션에 저장
     session['token'] = token
 
-
-
-
-
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=userinfo['id']).first()
     
@@ -111,9 +107,6 @@ def authorize_google():
     # 사용자 정보를 세션에 저장
     session['user_id'] = user.id
     login_user(user)
-
-
-
 
     return "Authentication Successful!"
 
