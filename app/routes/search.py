@@ -1,3 +1,4 @@
+import json
 from flask import render_template, redirect, url_for, request, session, jsonify
 from app.routes import search_bp
 from app.models.models import db, Word, Meaning
@@ -9,8 +10,9 @@ def index():
 
 @search_bp.route('/search_word', methods=['GET'])
 def search_word():
+    partial_word = request.args.get('word')
     #partial_word = request.args.get('fi')
-    partial_word = 'fi' # 테스트용
+    # partial_word = 'fi' # 테스트용
 
     if not partial_word:
         return jsonify(['잘못된 요청'])
@@ -32,7 +34,6 @@ def search_word():
                .outerjoin(Meaning, Word.id == Meaning.word_id)
                .filter(Word.id.in_(subquery))
                .all())
-    #print(results)
     
     # 단어별로 뜻을 매핑하여 결과 생성
     data = [] # 최종 데이터 담는 리스트
@@ -43,7 +44,7 @@ def search_word():
                 #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': word.example,
+                'example': None if word.example is None else json.loads(word.example),
                 'meanings': []
             }
         if meaning:
@@ -52,4 +53,4 @@ def search_word():
     for word_data in word_meaning_map.values():
         data.append(word_data)
 
-    return jsonify(data)
+    return jsonify({'code': 200, 'data' : data}), 200
