@@ -75,14 +75,12 @@ def search_word_korean():
                 .order_by(Meaning.meaning.asc())
                 .limit(10)
                 .subquery())
-    print(subquery)
-    print('=======================================================')
+    
     # 메인 쿼리 : word, meaning 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색 
     results = (db.session.query(Word, Meaning)
                .outerjoin(Meaning, Word.id == Meaning.word_id)
                .filter(Word.id.in_(subquery))
                .all())
-    print(results)
 
     # 단어별로 뜻을 매핑하여 결과 생성
     data = [] # 최종 데이터 담는 리스트
@@ -94,7 +92,8 @@ def search_word_korean():
                 'word': word.word,
                 'pronunciation': word.pronunciation,
                 'example': word.example,
-                'meanings': []
+                'meanings': [],
+                'main_keyword': 'temp' # partial_word에 포함된 뜻만
             }
         if meaning:
             word_meaning_map[word.id]['meanings'].append(meaning.meaning)
