@@ -8,9 +8,9 @@ from app import login_manager # Flask-login의 변수
 
 # 사용자 로드 함수
 @login_manager.user_loader
-def load_user(user):
+def load_user(user_id):
     print("@#$load_user")
-    user_item = db.session.query(User).filter(User.id == user.id).first()
+    user_item = db.session.query(User).filter(User.id == user_id).first()
     return user_item
 
 # 로그인이 되어있지 않은 경우
