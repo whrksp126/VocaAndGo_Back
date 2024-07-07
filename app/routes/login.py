@@ -19,6 +19,7 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
 
 @login_bp.route('/')
+@login_required
 def index():
     return render_template('main_login.html')
 

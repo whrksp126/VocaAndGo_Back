@@ -5,7 +5,6 @@ from app.models.models import db, User
 
 from app import login_manager # Flask-login의 변수
 
-
 # 사용자 로드 함수
 @login_manager.user_loader
 def load_user(user_id):

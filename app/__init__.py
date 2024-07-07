@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
 
+
+
 db = SQLAlchemy()
 migrate = Migrate()     
 login_manager = LoginManager()
@@ -24,7 +26,8 @@ def create_app():
     # login_manager.login_view = "main_login.html"
     
     # # 모든 모델 클래스들을 한번에 import
-    # from app.models import models
+    from app.models import models
+    from app.login_manager import load_user, unauthorized_callback
     
     with app.app_context():
         db.create_all()    
