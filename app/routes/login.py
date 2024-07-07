@@ -3,7 +3,7 @@ from app import db
 from app.routes import login_bp
 from app.models.models import User
 
-from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -20,7 +20,7 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
 @login_bp.route('/')
 def index():
-    return render_template('/main_login.html')
+    return render_template('main_login.html')
 
 
 # 로그인 라우트: 구글 OAuth2 인증 요청
@@ -109,6 +109,15 @@ def authorize_google():
     login_user(user)
 
     return "Authentication Successful!"
+
+
+@login_bp.route("/logout")
+@login_required
+def logout():
+    session.pop('token', None)
+    session.pop('user_id', None)
+    logout_user()
+    return render_template('index.html')
 
 
 @login_bp.route('/backup')

@@ -2,11 +2,15 @@ from flask import render_template, redirect, url_for, request, session, jsonify
 from app.routes import search_bp
 from app.models.models import db, Word, Meaning
 
+from flask_login import current_user, login_required, login_user
+
+@login_required
 @search_bp.route('/')
 def index():
     # 부분 입력에 따른 단어 검색 기능
     return render_template('index.html')
 
+@login_required
 @search_bp.route('/search_word', methods=['GET'])
 def search_word():
     #partial_word = request.args.get('fi')

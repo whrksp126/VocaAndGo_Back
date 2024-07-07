@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Application</title>
+</head>
+<body>
+    <h1>Upload an Image for OCR</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    
+    {% if extracted_text %}
+    <h2>Extracted Text:</h2>
+    <p>{{ extracted_text }}</p>
+    {% endif %}
+</body>
+</html>
