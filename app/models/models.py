@@ -52,7 +52,7 @@ class User(db.Model):
     def get_id(self):
         return self.id
     
-    def is_authenticated():
+    def is_authenticated(self):
         return True
 
 
