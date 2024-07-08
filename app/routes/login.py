@@ -13,6 +13,7 @@ import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBaseDownload
+from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
@@ -109,7 +110,18 @@ def authorize_google():
     session['user_id'] = user.id
     login_user(user)
 
-    return jsonify({'name': user.name, 'email': user.email}), 200
+    # return jsonify({'name': user.name, 'email': user.email}), 200
+
+
+    # 프론트엔드로 리디렉션 URL 생성
+    front_end_url = 'https://voca.ghmate.com/html/login.html'
+    query_params = {
+        'token': token['access_token'],
+        'email': user.email,
+        'status': 'success'
+    }
+    redirect_url = f"{front_end_url}?{urlencode(query_params)}"
+    return redirect(redirect_url)
 
 
 @login_bp.route("/logout")
