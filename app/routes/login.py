@@ -109,7 +109,7 @@ def authorize_google():
     session['user_id'] = user.id
     login_user(user)
 
-    return "Authentication Successful!"
+    return jsonify({'name': user.name, 'email': user.email}), 200
 
 
 @login_bp.route("/logout")
