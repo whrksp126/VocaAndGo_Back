@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageFilter, ImageEnhance
 import os
 
 from flask_login import current_user, login_required, login_user
@@ -8,7 +8,7 @@ from flask_login import current_user, login_required, login_user
 from app.routes import ocr_bp
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads/'
+app.config['UPLOAD_FOLDER'] = 'app/static/uploads/'
 
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
@@ -35,10 +35,24 @@ def upload_file():
         return render_template('ocr_test.html', extracted_text=text)
 
 
-def extract_text(image_path):
+def preprocess_image(image_path):
     img = Image.open(image_path)
-    text = pytesseract.image_to_string(img)
-    return text
+    img = img.resize((img.width * 2, img.height * 2), Image.Resampling.LANCZOS)  # 해상도 높이기
+    img = img.convert('L')  # 회색조로 변환
+    img = img.filter(ImageFilter.SHARPEN)  # 선명하게 하기
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(2)  # 대비 강화
+    img = img.point(lambda x: 0 if x < 160 else 255, '1')  # 이진화 처리
+    return img
+
+def extract_text(image_path):
+    img = preprocess_image(image_path)
+    custom_config = r'--oem 3 --psm 6'  # PSM 모드를 6으로 설정
+    data = pytesseract.image_to_data(img, config=custom_config, lang='kor+eng', output_type=pytesseract.Output.DATAFRAME)
+    extracted_text = data.to_dict(orient='records')
+    return extracted_text
 
 
-### 위치좌표도!!! ###
+'''
+사진 업로드하지 말고 스트림? 으로 확인할 수 있게 하자!!
+'''
