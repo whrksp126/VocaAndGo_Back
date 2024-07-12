@@ -5,7 +5,7 @@ from app.models.models import db, Word, Meaning
 
 from flask_login import current_user, login_required, login_user
 
-@login_required
+# @login_required
 @search_bp.route('/')
 def index():
     # 부분 입력에 따른 단어 검색 기능
@@ -14,9 +14,11 @@ def index():
 
 # 사전 검색 API
 ## 영어(단어) 부분 검색
-@login_required
+# @login_required
 @search_bp.route('/search_word_en', methods=['GET'])
 def search_word_en():
+
+    print('partial_word,')
     partial_word = request.args.get('word')
     #partial_word = 'fi' # 테스트용
 

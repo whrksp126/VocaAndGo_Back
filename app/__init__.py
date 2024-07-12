@@ -17,7 +17,8 @@ login_manager = LoginManager()
 
 def create_app():
     app = Flask(__name__)
-    # CORS(app, supports_credentials=True)
+    CORS(app, supports_credentials=True)
+    # CORS(app)
 
     app.config.from_object(Config)
     db.init_app(app)
