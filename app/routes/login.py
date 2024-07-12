@@ -3,7 +3,7 @@ from app import db
 from app.routes import login_bp
 from app.models.models import User
 
-from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -13,14 +13,16 @@ import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBaseDownload
+from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
 
 @login_bp.route('/')
+@login_required
 def index():
-    return render_template('/main_login.html')
+    return render_template('main_login.html')
 
 
 # 로그인 라우트: 구글 OAuth2 인증 요청
@@ -108,7 +110,28 @@ def authorize_google():
     session['user_id'] = user.id
     login_user(user)
 
-    return "Authentication Successful!"
+    # return jsonify({'name': user.name, 'email': user.email}), 200
+
+
+    # 프론트엔드로 리디렉션 URL 생성
+    front_end_url = 'https://voca.ghmate.com/html/login.html'
+    query_params = {
+        'token': token['access_token'],
+        'email': user.email,
+        'name': user.name,
+        'status': 200
+    }
+    redirect_url = f"{front_end_url}?{urlencode(query_params)}"
+    return redirect(redirect_url)
+
+
+@login_bp.route("/logout")
+@login_required
+def logout():
+    session.pop('token', None)
+    session.pop('user_id', None)
+    logout_user()
+    return render_template('index.html')
 
 
 @login_bp.route('/backup')
