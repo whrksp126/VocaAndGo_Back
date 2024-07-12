@@ -11,6 +11,8 @@ def index():
     # 부분 입력에 따른 단어 검색 기능
     return render_template('index.html')
 
+# 사전 검색 API
+## 영어로 검색했을 때
 @login_required
 @search_bp.route('/search_word', methods=['GET'])
 def search_word():
@@ -44,7 +46,7 @@ def search_word():
                 #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': None if word.example is None else json.loads(word.example),
+                'example': json.loads(word.example) if word.example else None, # json 형식으로 파싱
                 'meanings': []
             }
         if meaning:
