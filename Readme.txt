@@ -26,9 +26,3 @@ gh_home
 cd /var/www/vocaandgo
 flask 설치 완료 systemd 설정해서 항동 동작하고 있음
 
-
-### tesseract ocr 설정 ###
-https://github.com/UB-Mannheim/tesseract/wiki
-에서 exe파일을 설치하고, 
-설치 경로를 config.py 파일 pytesseract.pytesseract.tesseract_cmd 변수에 작성한다.
-
