@@ -44,7 +44,8 @@ def search_word():
                 #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': None if word.example is None else json.loads(word.example),
+                # 'example': None if word.example is None else json.loads(word.example),
+                'example': word.example,
                 'meanings': []
             }
         if meaning:
