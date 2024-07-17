@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Example</title>
+</head>
+<body>
+    <h1>Text to Speech</h1>
+    <input type="text" id="text-input" placeholder="Enter text here" />
+    <select id="language-select">
+        <option value="en">English</option>
+        <option value="ko">한국어</option>
+    </select>
+    <button onclick="generateSpeech()">음성 듣기</button>
+    <audio id="audio" controls style="display:none;"></audio>
+
+    <script>
+        async function generateSpeech() {
+            const text = document.getElementById('text-input').value;
+            const language = document.getElementById('language-select').value;  // 선택된 언어 가져오기
+            const response = await fetch('/tts/output', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text, language })  // 선택된 언어 사용
+            });
+            
+            console.log(response.status)
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const audio = document.getElementById('audio');
+                audio.style.display = 'none';
+                audio.src = url;
+                audio.play();
+            } else if (response.status === 400) {  // 400 에러 처리
+                const errorData = await response.json();
+                alert(errorData.error);  // 서버에서 보낸 에러 메시지 출력
+            } else {
+                alert('Error generating speech');
+            }
+        }
+    </script>
+</body>
+</html>

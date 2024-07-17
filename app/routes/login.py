@@ -121,6 +121,7 @@ def authorize_google():
         'name': user.name,
         'status': 200
     }
+    print("@#$#@$#", query_params)
     redirect_url = f"{front_end_url}?{urlencode(query_params)}"
     return redirect(redirect_url)
 

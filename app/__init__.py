@@ -34,8 +34,10 @@ def create_app():
         db.create_all()    
     from app.routes.login import login_bp
     from app.routes.search import search_bp
+    from app.routes.tts import tts_bp
     
     app.register_blueprint(login_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(tts_bp)
     
     return app
