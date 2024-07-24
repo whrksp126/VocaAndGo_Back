@@ -116,12 +116,18 @@ def authorize_google():
     session['user_id'] = user.id
     login_user(user)
 
-    return jsonify({
+    # Expo 앱으로 리디렉션 URL 생성
+    expo_redirect_url = 'vocaandgo://auth'
+    query_params = {
         'token': token['access_token'],
         'email': user.email,
         'name': user.name,
         'status': 200
-    })
+    }
+    redirect_url = f"{expo_redirect_url}?{urlencode(query_params)}"
+    print(f"Redirect URL: {redirect_url}")
+
+    return redirect(redirect_url)
 
 
     # # return jsonify({'name': user.name, 'email': user.email}), 200
