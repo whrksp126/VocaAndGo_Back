@@ -137,13 +137,15 @@ def authorize_google():
     elif device_type == 'app':
         # Expo 앱으로 리디렉션 URL 생성
         expo_redirect_url = 'exp://192.168.0.63:8081/--/auth'
+        # 프로덕션 앱으로 리디렉션 URL 생성
+        app_redirect_url = 'HeyVoca://auth'
         query_params = {
             'token': token['access_token'],
             'email': user.email,
             'name': user.name,
             'status': 200
         }
-        redirect_url = f"{expo_redirect_url}?{urlencode(query_params)}"
+        redirect_url = f"{app_redirect_url}?{urlencode(query_params)}"
         print(f"Redirect URL: {redirect_url}")
 
         return redirect(redirect_url)
