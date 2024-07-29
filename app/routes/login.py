@@ -124,7 +124,8 @@ def authorize_google():
 
     # type에 따른 리디렉션 URL 생성
     if device_type == 'web':
-        front_end_url = 'https://voca.ghmate.com/html/login.html'
+        # front_end_url = 'http://voca.ghmate.com/html/login.html'
+        front_end_url = 'http://127.0.0.1:5500/html/login.html'
         query_params = {
             'token': token['access_token'],
             'email': user.email,
