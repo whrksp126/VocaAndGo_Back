@@ -124,8 +124,7 @@ def authorize_google():
 
     # type에 따른 리디렉션 URL 생성
     if device_type == 'web':
-        # front_end_url = 'http://voca.ghmate.com/html/login.html'
-        front_end_url = 'http://127.0.0.1:5500/html/login.html'
+        front_end_url = 'http://voca.ghmate.com/html/login.html'
         query_params = {
             'token': token['access_token'],
             'email': user.email,
@@ -135,7 +134,7 @@ def authorize_google():
         print("@#$#@$#", query_params)
         redirect_url = f"{front_end_url}?{urlencode(query_params)}"
         return redirect(redirect_url)
-    elif device_type == 'android':
+    elif device_type == 'app':
         # Expo 앱으로 리디렉션 URL 생성
         expo_redirect_url = 'exp://192.168.0.63:8081/--/auth'
         query_params = {
