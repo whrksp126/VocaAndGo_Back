@@ -28,7 +28,7 @@ def index():
 # 로그인 라우트: 구글 OAuth2 인증 요청
 @login_bp.route('/google')
 def login_google():
-    device_type = request.args.get('device_type', 'web')
+    device_type = request.args.get('device_type', 'test')
     print('##### device_type: ', device_type)
     session['device_type'] = device_type
     # OAuth2Session 생성
