@@ -60,7 +60,8 @@ def authorize_google():
     state = session.pop('oauth_state', None)
 
     # type 값을 세션에서 가져옴
-    device_type = session.pop('device_type', 'web')
+    device_type = session.pop('device_type', 'test')
+    print('device_type: ', device_type)
 
     # 사용자가 리디렉션된 후에 받은 정보를 가져옵니다.
     authorization_response = request.url
