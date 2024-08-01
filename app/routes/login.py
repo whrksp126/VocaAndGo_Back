@@ -29,6 +29,7 @@ def index():
 @login_bp.route('/google')
 def login_google():
     device_type = request.args.get('device_type', 'web')
+    print('##### device_type: ', device_type)
     session['device_type'] = device_type
     # OAuth2Session 생성
     oauth = OAuth2Session(OAUTH_CLIENT_ID, redirect_uri=OAUTH_REDIRECT_URI, 
@@ -60,8 +61,7 @@ def authorize_google():
     state = session.pop('oauth_state', None)
 
     # type 값을 세션에서 가져옴
-    device_type = session.pop('device_type', 'test')
-    print('device_type: ', device_type)
+    device_type = session.pop('device_type', 'web')
 
     # 사용자가 리디렉션된 후에 받은 정보를 가져옵니다.
     authorization_response = request.url
