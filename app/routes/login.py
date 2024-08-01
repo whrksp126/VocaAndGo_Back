@@ -123,6 +123,8 @@ def authorize_google():
             'status': 200
         }
         redirect_url = f"{front_end_url}?{urlencode(query_params)}"
+        print('####################################33')
+        print(f"Redirect URL: {redirect_url}")
         return redirect(redirect_url)
     elif device_type == 'app':
         # Expo 앱으로 리디렉션 URL 생성
@@ -139,7 +141,8 @@ def authorize_google():
             'status': 200
         }
         redirect_url = f"{app_redirect_url}?{urlencode(query_params)}"
-        print(f"##############################3Redirect URL: {redirect_url}")
+        print('####################################33')
+        print(f"Redirect URL: {redirect_url}")
 
         return redirect(redirect_url)
     else:
