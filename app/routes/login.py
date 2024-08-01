@@ -65,9 +65,6 @@ def authorize_google():
     # 사용자가 리디렉션된 후에 받은 정보를 가져옵니다.
     authorization_response = request.url
 
-    print(f"State from session: {state}")
-    print(f"State from request: {request.args.get('state')}")
-
     if state is None or state != request.args.get('state'):
         return 'Invalid OAuth state', 400
 
@@ -87,11 +84,9 @@ def authorize_google():
             authorization_response=authorization_response,
             client_secret=OAUTH_CLIENT_SECRET
         )
-        print("@@@token", token)
 
         # 토큰에서 사용자 정보 추출
         userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
-        print("@@@userinfo", userinfo)
     except Exception as e:
         print(f"Error during token fetch or userinfo fetch: {str(e)}")
         return f"An error occurred: {str(e)}", 500
@@ -101,11 +96,7 @@ def authorize_google():
 
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=userinfo['id']).first()
-    
-    print('@@@@@useruserinfo',userinfo)
     if user is None:
-        print("comming!!!")
-        print("userinfo", userinfo['id'])
         # 사용자가 존재하지 않으면 회원가입 처리
         new_user = User(
             email=userinfo['email'],
@@ -131,7 +122,6 @@ def authorize_google():
             'name': user.name,
             'status': 200
         }
-        print("@#$#@$#", query_params)
         redirect_url = f"{front_end_url}?{urlencode(query_params)}"
         return redirect(redirect_url)
     elif device_type == 'app':
@@ -149,7 +139,7 @@ def authorize_google():
             'status': 200
         }
         redirect_url = f"{app_redirect_url}?{urlencode(query_params)}"
-        print(f"Redirect URL: {redirect_url}")
+        print(f"##############################3Redirect URL: {redirect_url}")
 
         return redirect(redirect_url)
     else:
