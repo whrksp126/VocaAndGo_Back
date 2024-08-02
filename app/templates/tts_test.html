@@ -11,6 +11,7 @@
     <select id="language-select">
         <option value="en">English</option>
         <option value="ko">한국어</option>
+        <option value="ja">일본어</option>
     </select>
     <button onclick="generateSpeech()">음성 듣기</button>
     <audio id="audio" controls style="display:none;"></audio>
@@ -19,13 +20,7 @@
         async function generateSpeech() {
             const text = document.getElementById('text-input').value;
             const language = document.getElementById('language-select').value;  // 선택된 언어 가져오기
-            const response = await fetch('/tts/output', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ text, language })  // 선택된 언어 사용
-            });
+            const response = await fetch(`/tts/output?text=${text}&language=${language}`, {method: 'GET',});
             
             console.log(response.status)
             if (response.ok) {

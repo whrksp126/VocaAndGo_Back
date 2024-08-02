@@ -26,8 +26,10 @@ def index():
 
 
 # 로그인 라우트: 구글 OAuth2 인증 요청
-@login_bp.route('/login/google')
+@login_bp.route('/google')
 def login_google():
+    device_type = request.args.get('device_type', 'web')
+    session['device_type'] = device_type
     # OAuth2Session 생성
     oauth = OAuth2Session(OAUTH_CLIENT_ID, redirect_uri=OAUTH_REDIRECT_URI, 
                           scope=[
@@ -57,8 +59,14 @@ def authorize_google():
     # 상태(state)를 가져옴
     state = session.pop('oauth_state', None)
 
+    # type 값을 세션에서 가져옴
+    device_type = session.pop('device_type', 'web')
+
     # 사용자가 리디렉션된 후에 받은 정보를 가져옵니다.
     authorization_response = request.url
+
+    if state is None or state != request.args.get('state'):
+        return 'Invalid OAuth state', 400
 
     # 사용자가 인증을 마치고 리디렉션 된 후, 코드를 얻어서 토큰을 교환합니다.
     oauth = OAuth2Session(OAUTH_CLIENT_ID, redirect_uri=OAUTH_REDIRECT_URI, state=state, 
@@ -69,32 +77,26 @@ def authorize_google():
                                 'https://www.googleapis.com/auth/drive.file'
                               ]
                         )
+    try:
 
-    # 상태(state) 확인
-    if state is None or state != request.args.get('state'):
-        return 'Invalid OAuth state', 400
+        token = oauth.fetch_token(
+            'https://accounts.google.com/o/oauth2/token',
+            authorization_response=authorization_response,
+            client_secret=OAUTH_CLIENT_SECRET
+        )
 
-    token = oauth.fetch_token(
-        'https://accounts.google.com/o/oauth2/token',
-        authorization_response=authorization_response,
-        client_secret=OAUTH_CLIENT_SECRET
-    )
-    print("@@@token", token)
-
-    # 토큰에서 사용자 정보 추출
-    userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
-    print("@@@userinfo", userinfo)
-
+        # 토큰에서 사용자 정보 추출
+        userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
+    except Exception as e:
+        print(f"Error during token fetch or userinfo fetch: {str(e)}")
+        return f"An error occurred: {str(e)}", 500
+    
     # 토큰 정보를 세션에 저장
     session['token'] = token
 
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=userinfo['id']).first()
-    
-    print('@@@@@useruserinfo',userinfo)
     if user is None:
-        print("comming!!!")
-        print("userinfo", userinfo['id'])
         # 사용자가 존재하지 않으면 회원가입 처리
         new_user = User(
             email=userinfo['email'],
@@ -110,20 +112,45 @@ def authorize_google():
     session['user_id'] = user.id
     login_user(user)
 
-    # return jsonify({'name': user.name, 'email': user.email}), 200
+
+    # type에 따른 리디렉션 URL 생성
+    if device_type == 'web':
+        front_end_url = 'https://voca.ghmate.com/html/login.html'
+        query_params = {
+            'token': token['access_token'],
+            'email': user.email,
+            'name': user.name,
+            'status': 200
+        }
+        redirect_url = f"{front_end_url}?{urlencode(query_params)}"
+        print('####################################33')
+        print(f"Redirect URL: {redirect_url}")
+        return redirect(redirect_url)
+    elif device_type == 'app':
+        # Expo 앱으로 리디렉션 URL 생성
+        # 프로덕션 앱으로 리디렉션 URL 생성
+        # app_redirect_url = 'vocaandgo_app://auth'
+        # app_redirect_url = 'https://voca.ghmate.com/html/login.html'
+        # app_redirect_url = 'exp://192.168.1.16:8081/--/auth'
+        app_redirect_url = 'HeyVoca://auth'
+
+        query_params = {
+            'token': token['access_token'],
+            'email': user.email,
+            'name': user.name,
+            'status': 200
+        }
+        redirect_url = f"{app_redirect_url}?{urlencode(query_params)}"
+        print('####################################33')
+        print(f"Redirect URL: {redirect_url}")
+
+        return redirect(redirect_url)
+    else:
+        return 'Invalid auth type', 400
+
+    # # return jsonify({'name': user.name, 'email': user.email}), 200
 
 
-    # 프론트엔드로 리디렉션 URL 생성
-    front_end_url = 'https://voca.ghmate.com/html/login.html'
-    query_params = {
-        'token': token['access_token'],
-        'email': user.email,
-        'name': user.name,
-        'status': 200
-    }
-    print("@#$#@$#", query_params)
-    redirect_url = f"{front_end_url}?{urlencode(query_params)}"
-    return redirect(redirect_url)
 
 
 @login_bp.route("/logout")

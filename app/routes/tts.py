@@ -17,11 +17,11 @@ def tts():
 
 
 
-@tts_bp.route('/output', methods=['POST'])
+# @tts_bp.route('/output', methods=['POST'])
+@tts_bp.route('/output', methods=['GET'])
 def tts_output():
-    data = request.json
-    text = data.get('text')
-    language = data.get('language', 'en')
+    text = request.args.get('text')
+    language = request.args.get('language')
     
     if not text:
         return jsonify({"error": "단어를 입력해주세요"}), 400
