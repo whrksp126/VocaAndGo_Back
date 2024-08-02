@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FCM Web Push</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
+    <script>
+        // Firebase 초기화
+        var firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+            measurementId: "YOUR_MEASUREMENT_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+
+        // 서비스 워커 등록
+        navigator.serviceWorker.register('/static/firebase-messaging-sw.js')
+        .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+            return messaging.getToken({ vapidKey: 'YOUR_PUBLIC_VAPID_KEY' });
+        })
+        .then((currentToken) => {
+            if (currentToken) {
+                console.log('FCM Token:', currentToken);
+                // FCM 토큰을 서버로 전송
+                fetch('/send_notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        token: currentToken,
+                        title: 'Hello!',
+                        body: 'This is a test notification.'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+            } else {
+                console.log('No registration token available. Request permission to generate one.');
+            }
+        })
+        .catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
+        });
+
+        // 알림 수신 처리
+        messaging.onMessage((payload) => {
+            console.log('Message received. ', payload);
+            // 커스텀 알림 처리
+            alert(`Title: ${payload.notification.title}\nBody: ${payload.notification.body}`);
+        });
+    </script>
+</head>
+<body>
+    <h1>Firebase Cloud Messaging</h1>
+</body>
+</html>
