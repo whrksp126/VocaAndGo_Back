@@ -46,41 +46,41 @@ def tts_output():
 
 # fcm test
 
-from flask import Flask, request, jsonify
+# from flask import Flask, request, jsonify
 
-import firebase_admin
-from firebase_admin import credentials, messaging
-
-
-# fcm 서비스 계정 키 파일 경로
-cred = credentials.Certificate("app/config/heyvoca-firebase-adminsdk-buwfz-bbbe06268c.json")
-firebase_admin.initialize_app(cred)
+# import firebase_admin
+# from firebase_admin import credentials, messaging
 
 
-@tts_bp.route('/fcm_html')
-def fcm_html():
-    return render_template('fcm.html')
+# # fcm 서비스 계정 키 파일 경로
+# cred = credentials.Certificate("app/config/heyvoca-firebase-adminsdk-buwfz-bbbe06268c.json")
+# firebase_admin.initialize_app(cred)
 
-@tts_bp.route('/send_notification', methods=['POST'])
-def send_notification():
-    try:
-        # 클라이언트로부터 토큰과 메시지를 받음
-        token = request.json.get('token')
-        title = request.json.get('title')
-        body = request.json.get('body')
+
+# @tts_bp.route('/fcm_html')
+# def fcm_html():
+#     return render_template('fcm.html')
+
+# @tts_bp.route('/send_notification', methods=['POST'])
+# def send_notification():
+#     try:
+#         # 클라이언트로부터 토큰과 메시지를 받음
+#         token = request.json.get('token')
+#         title = request.json.get('title')
+#         body = request.json.get('body')
         
-        # FCM 메시지 생성
-        message = messaging.Message(
-            notification=messaging.Notification(
-                title=title,
-                body=body,
-            ),
-            token=token,
-        )
+#         # FCM 메시지 생성
+#         message = messaging.Message(
+#             notification=messaging.Notification(
+#                 title=title,
+#                 body=body,
+#             ),
+#             token=token,
+#         )
 
-        # 메시지 전송
-        response = messaging.send(message)
-        print("@#$@#$@#$response", response)
-        return jsonify({'message': 'Successfully sent message', 'response': response}), 200
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+#         # 메시지 전송
+#         response = messaging.send(message)
+#         print("@#$@#$@#$response", response)
+#         return jsonify({'message': 'Successfully sent message', 'response': response}), 200
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
