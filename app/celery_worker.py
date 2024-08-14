@@ -1,4 +1,5 @@
 from celery import Celery
+import logging
 
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
@@ -20,7 +21,11 @@ def make_celery():
 celery = make_celery()
 
 
+# 로깅 설정
+logging.basicConfig(filename='celery.log', level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Celery 작업 정의
 @celery.task
 def send_fcm_message():
-    print('Successfully sent message:')
+    logger.info('Successfully sent message:')
