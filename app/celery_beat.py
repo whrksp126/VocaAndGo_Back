@@ -18,4 +18,5 @@ celery.conf.beat_schedule = {
 }
 celery.conf.timezone = 'UTC'
 
-celery.start()
+# if __name__ == '__main__':
+#     celery.start()
