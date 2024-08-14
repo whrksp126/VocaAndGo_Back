@@ -12,7 +12,7 @@ from celery_config import celery
 # }
 celery.conf.beat_schedule = {
     'send-fcm-every-10-seconds': {
-        'task': 'celery.send_fcm_message',
+        'task': 'app.celery_worker.send_fcm_message',
         'schedule': timedelta(seconds=10),  # 10초마다 실행
     },
 }
