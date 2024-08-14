@@ -35,7 +35,7 @@ def send_fcm_message():
 # Celery Beat 스케줄 설정
 celery.conf.beat_schedule = {
     'send-fcm-every-10-seconds': {
-        'task': 'send_fcm_message',
+        'task': 'app.celery_worker_beat.send_fcm_message',
         'schedule': timedelta(seconds=10),  # 10초마다 실행
     },
 }
