@@ -1,5 +1,7 @@
-from config import CELERY_BROKER_URL, CELERY_RESULT_BACKEND
 from celery import Celery
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 
 def make_celery():
     celery = Celery(
