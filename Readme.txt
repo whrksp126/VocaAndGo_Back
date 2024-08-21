@@ -30,8 +30,8 @@ flask 설치 완료 systemd 설정해서 항동 동작하고 있음
 
 ## 샐러리 실행 명령어
 # 샐러리 워커 실행
-celery -A app.celery_worker.celery worker --loglevel=info
+celery -A app.celery_worker_beat.celery worker --loglevel=info
 # 샐러리 비트 실행
-celery -A app.celery_worker.celery beat --loglevel=info
+celery -A app.celery_worker_beat.celery beat --loglevel=info
 
 

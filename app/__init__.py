@@ -16,7 +16,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 def create_app():
-    app = Flask(__name__, static_folder='static', static_url_path='/static')
+    app = Flask(__name__, static_folder='static', static_url_path='')
     CORS(app, supports_credentials=True)
     # CORS(app)
 

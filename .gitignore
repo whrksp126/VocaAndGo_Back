@@ -4,3 +4,5 @@ __pycache__/
 config.py
 .txt
 config/
+firebase_setting.js
+vocaandgo-firebase-adminsdk-xyi9u-4a73c9d3d8.json

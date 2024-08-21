@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, request, session, jsonify, send_file
+from flask import render_template, redirect, url_for, request, session, jsonify, send_file, send_from_directory
 from app import db
 from app.routes import tts_bp
 
@@ -46,41 +46,63 @@ def tts_output():
 
 # fcm test
 
-# from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 
-# import firebase_admin
-# from firebase_admin import credentials, messaging
-
-
-# # fcm 서비스 계정 키 파일 경로
-# cred = credentials.Certificate("app/config/heyvoca-firebase-adminsdk-buwfz-bbbe06268c.json")
-# firebase_admin.initialize_app(cred)
+import firebase_admin
+from firebase_admin import credentials, messaging
 
 
-# @tts_bp.route('/fcm_html')
-# def fcm_html():
-#     return render_template('fcm.html')
+# fcm 서비스 계정 키 파일 경로
+cred = credentials.Certificate("app/config/vocaandgo-firebase-adminsdk-xyi9u-4a73c9d3d8.json")
+firebase_admin.initialize_app(cred)
 
-# @tts_bp.route('/send_notification', methods=['POST'])
-# def send_notification():
-#     try:
-#         # 클라이언트로부터 토큰과 메시지를 받음
-#         token = request.json.get('token')
-#         title = request.json.get('title')
-#         body = request.json.get('body')
-        
-#         # FCM 메시지 생성
-#         message = messaging.Message(
-#             notification=messaging.Notification(
-#                 title=title,
-#                 body=body,
-#             ),
-#             token=token,
-#         )
 
-#         # 메시지 전송
-#         response = messaging.send(message)
-#         print("@#$@#$@#$response", response)
-#         return jsonify({'message': 'Successfully sent message', 'response': response}), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+@tts_bp.route('/fcm_html')
+def fcm_html():
+    return render_template('fcm3.html')
+
+
+@tts_bp.route('/firebase-messaging-sw.js')
+def firebase_messaging_sw():
+    return send_from_directory('static', 'firebase-messaging-sw.js')
+
+
+@tts_bp.route('/send_notification_test', methods=['POST'])
+def send_notification_test():
+    data = request.json
+    token = data.get('token')
+    message_body = data.get('message')
+
+    # 메시지 구성
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title='Hello',
+            body=message_body,
+        ),
+        token=token,
+    )
+
+    # 메시지 전송
+    try:
+        response = messaging.send(message)
+        return jsonify({'success': True, 'message_id': response}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+
+@tts_bp.route('/get_token', methods=['POST'])
+def get_token():
+    # 인증된 사용자라면 사용자 ID 기반으로 토큰 생성
+    user_id = request.json.get('user_id')
+    registration_token = request.json.get('token')
+
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title='Hello!',
+            body='This is a test message.'
+        ),
+        token=registration_token,
+    )
+
+    response = messaging.send(message)
+    return jsonify({"status": "success", "response": response})
