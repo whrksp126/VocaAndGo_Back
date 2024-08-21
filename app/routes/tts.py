@@ -89,6 +89,7 @@ def send_notification_test():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     
+import threading
 
 @tts_bp.route('/get_token', methods=['POST'])
 def get_token():
@@ -105,4 +106,17 @@ def get_token():
     )
 
     response = messaging.send(message)
+
+    # 5초 후에 FCM 메시지를 보내기 위한 타이머 설정
+    timer = threading.Timer(10.0, send_fcm, [message])
+    timer.start()
+
     return jsonify({"status": "success", "response": response})
+
+def send_fcm(message):
+    # 실제로 FCM 메시지를 보내는 함수
+    try:
+        response = messaging.send(message)
+        print("Successfully sent message:", response)
+    except Exception as e:
+        print("Error sending message:", e)
