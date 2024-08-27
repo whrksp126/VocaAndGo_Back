@@ -119,3 +119,65 @@ def send_fcm(message):
         print("Successfully sent message:", response)
     except Exception as e:
         print("Error sending message:", e)
+
+
+
+
+
+###### 엑셀 테스트 ######
+
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+
+# 더미 데이터
+data = [
+    {"id": 1, "name": "1 단어장", "color": {"main": "FF8DD4", "background": "FFEFFA"},
+     "updatedAt": "2024-08-13T15:25:47.633Z", "status": "active",
+     "words": [
+         {"notebookId": 1, "word": "big", "meaning": "큰, 중요한, 많이, 대단한", "example": "", "description": "",
+          "createdAt": "2024-08-13T14:58:08.753Z", "updatedAt": "2024-08-13T14:58:08.753Z", "status": 0, "id": 2},
+         {"notebookId": 1, "word": "generally", "meaning": "일반적으로, 대개, 대체로, 보통, 전반적으로", "example": "",
+          "description": "", "createdAt": "2024-08-13T15:27:27.829Z", "updatedAt": "2024-08-13T15:27:27.829Z",
+          "status": 0, "id": 4},
+         {"notebookId": 1, "word": "apply", "meaning": "적용하다, 지원하다, 신청하다, 응용하다, 쓰다", "example": "",
+          "description": "", "createdAt": "2024-08-13T17:53:33.679Z", "updatedAt": "2024-08-13T17:53:33.679Z",
+          "status": 0, "id": 6},
+         {"notebookId": 1, "word": "kind", "meaning": "종류, …가지, 친절한, 부드러운, 착한", "example": "",
+          "description": "", "createdAt": "2024-08-21T16:09:47.771Z", "updatedAt": "2024-08-21T16:09:47.771Z",
+          "status": 0, "id": 7},
+         {"notebookId": 1, "word": "kindergarten", "meaning": "유치원", "example": "", "description": "",
+          "createdAt": "2024-08-21T16:09:54.529Z", "updatedAt": "2024-08-21T16:09:54.529Z", "status": 0, "id": 8},
+         {"notebookId": 1, "word": "kindness", "meaning": "친절, 호의", "example": "", "description": "",
+          "createdAt": "2024-08-21T16:09:59.952Z", "updatedAt": "2024-08-21T16:09:59.952Z", "status": 0, "id": 9},
+         {"notebookId": 1, "word": "kitchen", "meaning": "부엌, 주방", "example": "", "description": "",
+          "createdAt": "2024-08-21T16:10:05.091Z", "updatedAt": "2024-08-21T16:10:05.091Z", "status": 0, "id": 10},
+         {"notebookId": 1, "word": "wear", "meaning": "입다", "example": "", "description": "",
+          "createdAt": "2024-08-21T17:10:05.730Z", "updatedAt": "2024-08-21T17:10:05.730Z", "status": 0, "id": 11},
+     ]},
+    {"name": "2 단어장", "color": {"main": "74D5FF", "background": "EAF6FF"},
+     "createdAt": "2024-08-13T14:43:56.798Z", "updatedAt": "2024-08-13T14:43:56.798Z", "status": "active", "id": 2,
+     "words": []},
+    {"name": "3 단어장", "color": {"main": "FF8DD4", "background": "FFEFFA"},
+     "createdAt": "2024-08-13T15:26:00.425Z", "updatedAt": "2024-08-13T15:26:00.425Z", "status": "active", "id": 3,
+     "words": []},
+]
+
+@tts_bp.route('/download_excel', methods=['GET'])
+def download_excel():
+    # BytesIO 객체를 사용하여 메모리에 엑셀 파일 생성
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    # 각 단어장별로 시트를 생성
+    for notebook in data:
+        df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
+        df.columns = ['영단어', '한국어', '예문']
+        df.to_excel(writer, sheet_name=notebook['name'], index=False)
+
+    # writer 닫아서 파일 저장
+    writer.close()
+    output.seek(0)
+
+    # 파일 전송
+    return send_file(output, download_name='vocabularies.xlsx', as_attachment=True)
