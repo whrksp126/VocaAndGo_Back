@@ -90,7 +90,6 @@ def send_notification_test():
         return jsonify({'success': False, 'error': str(e)}), 500
     
 import threading
-
 @tts_bp.route('/get_token', methods=['POST'])
 def get_token():
     # 인증된 사용자라면 사용자 ID 기반으로 토큰 생성
