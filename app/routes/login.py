@@ -201,7 +201,7 @@ from flask import send_file
 import pandas as pd
 from io import BytesIO
 
-import data from app.routes.tts
+from app.routes.tts import data
 
 @login_bp.route('/backup')
 @login_required
