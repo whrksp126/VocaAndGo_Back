@@ -182,3 +182,5 @@ def download_excel():
 
     # 파일 전송
     return send_file(output, download_name='vocabularies.xlsx', as_attachment=True)
+
+
