@@ -218,6 +218,26 @@ def backup():
 
     drive_service = build('drive', 'v3', credentials=credentials)
 
+    # 폴더 이름
+    folder_name = 'vocaandgo'
+    
+    # 폴더가 존재하는지 확인
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get('files', [])
+
+    if not folders:
+        # 폴더가 없으면 생성
+        file_metadata = {
+            'name': folder_name,
+            'mimeType': 'application/vnd.google-apps.folder'
+        }
+        folder = drive_service.files().create(body=file_metadata, fields='id').execute()
+        folder_id = folder.get('id')
+    else:
+        # 폴더가 있으면 그 폴더 ID 사용
+        folder_id = folders[0].get('id')
+
     # 엑셀 파일 생성
     output = io.BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
@@ -230,8 +250,11 @@ def backup():
     writer.close()
     output.seek(0)
 
-    # Google Drive에 업로드
-    file_metadata = {'name': 'vocabularies_backup.xlsx'}
+    # Google Drive에 엑셀 파일 업로드
+    file_metadata = {
+        'name': 'vocabularies_backup.xlsx',
+        'parents': [folder_id]  # 파일을 업로드할 폴더 지정
+    }
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
