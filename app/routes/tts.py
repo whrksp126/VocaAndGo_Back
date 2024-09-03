@@ -53,8 +53,8 @@ from firebase_admin import credentials, messaging
 
 
 # fcm 서비스 계정 키 파일 경로
-cred = credentials.Certificate("app/config/vocaandgo-firebase-adminsdk-xyi9u-4a73c9d3d8.json")
-firebase_admin.initialize_app(cred)
+#cred = credentials.Certificate("app/config/vocaandgo-firebase-adminsdk-xyi9u-4a73c9d3d8.json")
+#firebase_admin.initialize_app(cred)
 
 
 @tts_bp.route('/fcm_html')
@@ -90,7 +90,6 @@ def send_notification_test():
         return jsonify({'success': False, 'error': str(e)}), 500
     
 import threading
-
 @tts_bp.route('/get_token', methods=['POST'])
 def get_token():
     # 인증된 사용자라면 사용자 ID 기반으로 토큰 생성
