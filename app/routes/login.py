@@ -162,13 +162,50 @@ def logout():
     return render_template('index.html')
 
 
+# @login_bp.route('/backup')
+# @login_required
+# def backup():
+#     # if 'credentials' not in session:
+#         # return redirect(url_for('login'))
+
+
+#     # token에서 Credentials 객체 생성
+#     token = session['token']
+#     credentials = Credentials(
+#         token=token['access_token'],
+#         refresh_token=token.get('refresh_token'),
+#         token_uri='https://oauth2.googleapis.com/token',
+#         client_id=OAUTH_CLIENT_ID,
+#         client_secret=OAUTH_CLIENT_SECRET
+#     )
+    
+#     drive_service = build('drive', 'v3', credentials=credentials)
+    
+
+#     # JSON 데이터를 메모리 스트림으로 변환
+#     json_data = {
+#         "example_key": "example_value",
+#         "another_key": 12345
+#     }
+#     json_str = json.dumps(json_data)
+#     json_bytes = io.BytesIO(json_str.encode('utf-8'))
+    
+#     file_metadata = {'name': 'wordlist_backup.json'}
+#     media = MediaIoBaseUpload(json_bytes, mimetype='application/json')
+#     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+    
+#     return jsonify({"file_id": file.get('id')})
+
+
+from flask import send_file
+import pandas as pd
+from io import BytesIO
+
+import data from app.routes.tts
+
 @login_bp.route('/backup')
 @login_required
 def backup():
-    # if 'credentials' not in session:
-        # return redirect(url_for('login'))
-
-
     # token에서 Credentials 객체 생성
     token = session['token']
     credentials = Credentials(
@@ -178,20 +215,24 @@ def backup():
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
     )
-    
-    drive_service = build('drive', 'v3', credentials=credentials)
-    
 
-    # JSON 데이터를 메모리 스트림으로 변환
-    json_data = {
-        "example_key": "example_value",
-        "another_key": 12345
-    }
-    json_str = json.dumps(json_data)
-    json_bytes = io.BytesIO(json_str.encode('utf-8'))
-    
-    file_metadata = {'name': 'wordlist_backup.json'}
-    media = MediaIoBaseUpload(json_bytes, mimetype='application/json')
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    # 엑셀 파일 생성
+    output = io.BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    for notebook in data:
+        df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
+        df.columns = ['영단어', '한국어', '예문']
+        df.to_excel(writer, sheet_name=notebook['name'], index=False)
+
+    writer.close()
+    output.seek(0)
+
+    # Google Drive에 업로드
+    file_metadata = {'name': 'vocabularies_backup.xlsx'}
+    media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    
+
     return jsonify({"file_id": file.get('id')})
