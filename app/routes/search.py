@@ -22,8 +22,7 @@ def index():
 @search_bp.route('/en', methods=['GET'])
 def search_voca_word_en():
 
-    #word = request.args.get('word')
-    word = 'beach' # 테스트용
+    word = request.args.get('word')
     print('word : ', word)
 
     if not word:
@@ -69,7 +68,6 @@ def search_voca_word_en():
 def search_word_en():
 
     partial_word = request.args.get('word')
-    #partial_word = 'fi' # 테스트용
 
     if not partial_word:
         return jsonify(['잘못된 요청'])
@@ -115,7 +113,6 @@ def search_word_en():
 @search_bp.route('/partial/ko', methods=['GET'])
 def search_word_korean():
     partial_word = request.args.get('word')
-    #partial_word = '구' # 테스트용
     word_split = [] # 한 글자씩 담기
     for w in range(len(partial_word)):
         word_split.append(partial_word[w])
