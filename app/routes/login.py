@@ -228,6 +228,9 @@ from app.routes.tts import data
 @login_bp.route('/backup')
 @login_required
 def backup():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "제공된 데이터가 없습니다"}), 400
     # token에서 Credentials 객체 생성
     token = session['token']
     credentials = Credentials(
@@ -241,7 +244,7 @@ def backup():
     drive_service = build('drive', 'v3', credentials=credentials)
 
     # 폴더 이름
-    folder_name = 'vocaandgo'
+    folder_name = 'HeyVoca'
     
     # 폴더가 존재하는지 확인
     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"

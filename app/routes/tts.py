@@ -132,35 +132,52 @@ from io import BytesIO
 
 # 더미 데이터
 data = [
-    {"id": 1, "name": "1 단어장", "color": {"main": "FF8DD4", "background": "FFEFFA"},
-     "updatedAt": "2024-08-13T15:25:47.633Z", "status": "active",
-     "words": [
-         {"notebookId": 1, "word": "big", "meaning": "큰, 중요한, 많이, 대단한", "example": "", "description": "",
-          "createdAt": "2024-08-13T14:58:08.753Z", "updatedAt": "2024-08-13T14:58:08.753Z", "status": 0, "id": 2},
-         {"notebookId": 1, "word": "generally", "meaning": "일반적으로, 대개, 대체로, 보통, 전반적으로", "example": "",
-          "description": "", "createdAt": "2024-08-13T15:27:27.829Z", "updatedAt": "2024-08-13T15:27:27.829Z",
-          "status": 0, "id": 4},
-         {"notebookId": 1, "word": "apply", "meaning": "적용하다, 지원하다, 신청하다, 응용하다, 쓰다", "example": "",
-          "description": "", "createdAt": "2024-08-13T17:53:33.679Z", "updatedAt": "2024-08-13T17:53:33.679Z",
-          "status": 0, "id": 6},
-         {"notebookId": 1, "word": "kind", "meaning": "종류, …가지, 친절한, 부드러운, 착한", "example": "",
-          "description": "", "createdAt": "2024-08-21T16:09:47.771Z", "updatedAt": "2024-08-21T16:09:47.771Z",
-          "status": 0, "id": 7},
-         {"notebookId": 1, "word": "kindergarten", "meaning": "유치원", "example": "", "description": "",
-          "createdAt": "2024-08-21T16:09:54.529Z", "updatedAt": "2024-08-21T16:09:54.529Z", "status": 0, "id": 8},
-         {"notebookId": 1, "word": "kindness", "meaning": "친절, 호의", "example": "", "description": "",
-          "createdAt": "2024-08-21T16:09:59.952Z", "updatedAt": "2024-08-21T16:09:59.952Z", "status": 0, "id": 9},
-         {"notebookId": 1, "word": "kitchen", "meaning": "부엌, 주방", "example": "", "description": "",
-          "createdAt": "2024-08-21T16:10:05.091Z", "updatedAt": "2024-08-21T16:10:05.091Z", "status": 0, "id": 10},
-         {"notebookId": 1, "word": "wear", "meaning": "입다", "example": "", "description": "",
-          "createdAt": "2024-08-21T17:10:05.730Z", "updatedAt": "2024-08-21T17:10:05.730Z", "status": 0, "id": 11},
-     ]},
-    {"name": "2 단어장", "color": {"main": "74D5FF", "background": "EAF6FF"},
-     "createdAt": "2024-08-13T14:43:56.798Z", "updatedAt": "2024-08-13T14:43:56.798Z", "status": "active", "id": 2,
-     "words": []},
-    {"name": "3 단어장", "color": {"main": "FF8DD4", "background": "FFEFFA"},
-     "createdAt": "2024-08-13T15:26:00.425Z", "updatedAt": "2024-08-13T15:26:00.425Z", "status": "active", "id": 3,
-     "words": []},
+    {
+        "name":"기본 단어장",
+        "color":{"main":"CD8DFF","background":"F6EFFF"},
+        "createdAt":"2024-09-04T18:17:18.716Z",
+        "updatedAt":"2024-09-04T18:17:18.716Z",
+        "status":"active",
+        "id":1,
+        "words":[
+            {
+                "notebookId":1,
+                "word":"tell",
+                "meaning":["말하다","이야기하다"],
+                "example":[
+                    {
+                        "origin":"tell a good joke",
+                        "meaning":"재치 있는 농담을 하다"
+                    },
+                    {
+                        "origin":"tell him a story",
+                        "meaning":"그에게 이야기를 들려주다"
+                    }
+                ],
+                "description":"",
+                "createdAt":"2024-09-04T18:17:28.026Z",
+                "updatedAt":"2024-09-04T18:17:28.026Z",
+                "status":0,
+                "id":1
+            },
+            {"notebookId":1,"word":"hidden","meaning":["숨은","감춰진","비밀의","남모르게"],"example":[{"origin":"a hidden tax","meaning":"간접세(indirect tax)"},{"origin":"a hidden microphone","meaning":"숨겨진 마이크"}],"description":"","createdAt":"2024-09-04T18:31:47.497Z","updatedAt":"2024-09-04T18:31:47.497Z","status":0,"id":2},
+            {"notebookId":1,"word":"big","meaning":["큰","중요한","많이","대단한"],"example":[{"origin":"a big tree","meaning":"큰 나무[집](※a great oak 커다란 참나무)"},{"origin":"a big city","meaning":"대도시"}],"description":"","createdAt":"2024-09-04T18:31:54.984Z","updatedAt":"2024-09-04T18:31:54.984Z","status":0,"id":3},
+            {"notebookId":1,"word":"giant","meaning":["거대한","자이언트","거인","위대한"],"example":[{"origin":"an economic giant","meaning":"경제 대국"},{"origin":"a musical giant","meaning":"위대한 음악가"}],"description":"","createdAt":"2024-09-04T18:32:29.489Z","updatedAt":"2024-09-04T18:32:29.489Z","status":0,"id":4}
+        ]
+    },
+    {
+        "name":"고급 단어장",
+        "color":{"main":"FF8DD4","background":"FFEFFA"},
+        "createdAt":"2024-09-04T18:33:01.160Z",
+        "updatedAt":"2024-09-04T18:33:01.160Z",
+        "status":"active",
+        "id":2,
+        "words":[
+            {"notebookId":2,"word":"peaceful","meaning":["평화적인","평화로운","편안한"],"example":[{"origin":"peaceful times","meaning":"태평 세월"},{"origin":"a peaceful death","meaning":"평온한 죽음[임종]"}],"description":"","createdAt":"2024-09-04T18:33:10.409Z","updatedAt":"2024-09-04T18:33:10.409Z","status":0,"id":5},
+            {"notebookId":2,"word":"quotient","meaning":["상","몫","할당"],"example":[{"origin":"an intelligence quotient","meaning":"지능지수(약자: IQ)."},{"origin":"emotional quotient ","meaning":"감성 지수(약자: EQ)."}],"description":"","createdAt":"2024-09-04T18:33:26.631Z","updatedAt":"2024-09-04T18:33:26.631Z","status":0,"id":6},
+            {"notebookId":2,"word":"political","meaning":["정치의","정계의","정당의","정략의"],"example":[{"origin":"political theory","meaning":"정치학 이론"},{"origin":"a political animal","meaning":"(아리스토텔레스가 말한) 정치적 동물(※인간에 대한 정의); 타고난 정치가"}],"description":"","createdAt":"2024-09-04T18:33:32.730Z","updatedAt":"2024-09-04T18:33:32.730Z","status":0,"id":7}
+        ]
+    }
 ]
 
 
