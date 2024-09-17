@@ -75,3 +75,10 @@ class Meaning(db.Model):
     created_at = Column(DateTime, nullable=True)
     updated_at = Column(DateTime, nullable=True)
     word_id = Column(Integer, ForeignKey('word.id'), nullable=True)
+
+
+# class DailySentence(db.Model):
+#     __tablename__ = 'daily_sentence'
+#     date = Column(DateTime, nullable=False, primary_key=True)
+#     sentence = Column(String(200), nullable=False, primary_key=True)
+#     meaning = Column(String(200), nullable=False)

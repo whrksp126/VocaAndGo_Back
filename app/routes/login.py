@@ -162,6 +162,7 @@ def logout():
     return render_template('index.html')
 
 
+# ### 드라이브에 json으로 저장 TODO : vocaandgo폴더 안에 저장시키기
 # @login_bp.route('/backup')
 # @login_required
 # def backup():
@@ -180,8 +181,27 @@ def logout():
 #     )
     
 #     drive_service = build('drive', 'v3', credentials=credentials)
-    
 
+#     # 폴더 이름
+#     folder_name = 'vocaandgo'
+    
+#     # 폴더가 존재하는지 확인
+#     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+#     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+#     folders = results.get('files', [])
+
+#     if not folders:
+#         # 폴더가 없으면 생성
+#         file_metadata = {
+#             'name': folder_name,
+#             'mimeType': 'application/vnd.google-apps.folder'
+#         }
+#         folder = drive_service.files().create(body=file_metadata, fields='id').execute()
+#         folder_id = folder.get('id')
+#     else:
+#         # 폴더가 있으면 그 폴더 ID 사용
+#         folder_id = folders[0].get('id')
+    
 #     # JSON 데이터를 메모리 스트림으로 변환
 #     json_data = {
 #         "example_key": "example_value",
@@ -190,20 +210,23 @@ def logout():
 #     json_str = json.dumps(json_data)
 #     json_bytes = io.BytesIO(json_str.encode('utf-8'))
     
-#     file_metadata = {'name': 'wordlist_backup.json'}
+#     file_metadata = {
+#         'name': 'wordlist_backup.json',
+#         'parents': [folder_id]
+#     }
 #     media = MediaIoBaseUpload(json_bytes, mimetype='application/json')
 #     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
     
 #     return jsonify({"file_id": file.get('id')})
 
 
+## 드라이브에 엑셀 파일로 저장 TODO : word->origin
 from flask import send_file
 import pandas as pd
 from io import BytesIO
-
-
-@login_bp.route('/backup', methods=['POST'])
-# @login_required
+from app.routes.tts import data
+@login_bp.route('/backup')
+@login_required
 def backup():
     data = request.get_json()
     if not data:
@@ -244,11 +267,18 @@ def backup():
     output = io.BytesIO()
     writer = pd.ExcelWriter(output, engine='xlsxwriter')
 
-    # POST로 받은 데이터에서 노트북 리스트 처리
-    for notebook in data['notebooks']:
-        df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
-        df.columns = ['영단어', '한국어', '예문']
-        df.to_excel(writer, sheet_name=notebook['name'], index=False)
+    for notebook in data:
+            # DataFrame 생성
+            df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
+
+            # 'meaning' 열의 리스트를 쉼표로 구분된 문자열로 변환
+            df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+
+            # 'example' 열도 필요한 경우 같은 방식으로 처리
+            df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
+
+            # DataFrame을 엑셀 시트에 저장
+            df.to_excel(writer, sheet_name=notebook['name'], index=False)
 
     writer.close()
     output.seek(0)
@@ -262,3 +292,67 @@ def backup():
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
     return jsonify({"file_id": file.get('id')})
+
+
+@login_bp.route('/excel_to_json')
+@login_required
+def excel_to_json():
+    # token에서 Credentials 객체 생성
+    token = session['token']
+    credentials = Credentials(
+        token=token['access_token'],
+        refresh_token=token.get('refresh_token'),
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=OAUTH_CLIENT_ID,
+        client_secret=OAUTH_CLIENT_SECRET
+    )
+
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    # 파일 이름
+    file_name = 'vocabularies_backup.xlsx'
+    
+    # Google Drive에서 파일 검색
+    query = f"name='{file_name}' and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get('files', [])
+
+    if not files:
+        return jsonify({"error": "File not found"}), 404
+
+    file_id = files[0]['id']
+
+    # 파일 다운로드
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    # 파일의 내용을 읽음
+    fh.seek(0)
+    excel_data = pd.ExcelFile(fh)
+
+    # 데이터를 저장할 리스트
+    data = []
+
+    # 각 시트를 순회
+    for sheet_name in excel_data.sheet_names:
+        # 시트 읽기
+        df = pd.read_excel(excel_data, sheet_name=sheet_name)
+
+        # 'meaning'과 'example'을 리스트로 변환
+        df['meaning'] = df['meaning'].apply(lambda x: x.split(', ') if isinstance(x, str) else x)
+        df['example'] = df['example'].apply(lambda x: x.split('|\n') if isinstance(x, str) else x)
+
+        # 필요한 데이터를 JSON 형태로 변환
+        notebook = {
+            'name': sheet_name,
+            'words': df.to_dict(orient='records')  # 각 행을 딕셔너리 형태로 변환
+        }
+        
+        data.append(notebook)
+
+    print("data",data)
+    return jsonify(data)
