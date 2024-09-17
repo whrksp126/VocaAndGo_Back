@@ -45,16 +45,23 @@ def search_voca_word_en():
     data = [] # 최종 데이터 담는 리스트
     word_meaning_map = {}
     for word, meaning in results:
+        example = json.loads(word.example) if word.example else None
+        if isinstance(example, list):
+            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
+        else:
+            example = None 
+
         if word.id not in word_meaning_map:
             word_meaning_map[word.id] = {
                 #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': json.loads(word.example) if word.example else None, # json 형식으로 파싱
+                'example': example,
                 'meanings': []
             }
         if meaning:
             word_meaning_map[word.id]['meanings'].append(meaning.meaning)
+
 
     for word_data in word_meaning_map.values():
         data.append(word_data)
@@ -91,12 +98,17 @@ def search_word_en():
     data = [] # 최종 데이터 담는 리스트
     word_meaning_map = {}
     for word, meaning in results:
+        example = json.loads(word.example) if word.example else None
+        if isinstance(example, list):
+            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
+        else:
+            example = None 
         if word.id not in word_meaning_map:
             word_meaning_map[word.id] = {
                 #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': json.loads(word.example) if word.example else None, # json 형식으로 파싱
+                'example': example,
                 'meanings': []
             }
         if meaning:
@@ -158,11 +170,15 @@ def search_word_korean():
     result_list = []
     for result in results:
         word = db.session.query(Word).filter_by(id=result.word_id).first()
-        example_json = json.loads(word.example) if word.example else None
+        example = json.loads(word.example) if word.example else None
+        if isinstance(example, list):
+            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
+        else:
+            example = None 
         result_data = {
             'word': word.word,
             'pronunciation': word.pronunciation,
-            'example': example_json,
+            'example': example,
             'meaning': result.meaning,
         }
         result_list.append(result_data)
