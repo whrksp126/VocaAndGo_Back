@@ -35,9 +35,13 @@ def create_app():
     from app.routes.login import login_bp
     from app.routes.search import search_bp
     from app.routes.tts import tts_bp
+    from app.routes.fcm import fcm_bp
+    from app.routes.drive import drive_bp
     
     app.register_blueprint(login_bp)
     app.register_blueprint(search_bp)
     app.register_blueprint(tts_bp)
+    app.register_blueprint(fcm_bp)
+    app.register_blueprint(drive_bp)
     
     return app
