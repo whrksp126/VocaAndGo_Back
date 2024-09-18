@@ -342,7 +342,7 @@ def excel_to_json():
         # 시트 읽기
         df = pd.read_excel(excel_data, sheet_name=sheet_name)
 
-        print(df.columns)
+        print("#####",df.columns)
 
         # 'meaning'과 'example'을 리스트로 변환
         df['meaning'] = df['meaning'].apply(lambda x: x.split(', ') if isinstance(x, str) else x)
@@ -355,6 +355,8 @@ def excel_to_json():
         }
         
         data.append(notebook)
+
+        print("@@@data", data)
 
     print("data",data)
     return jsonify(data)
