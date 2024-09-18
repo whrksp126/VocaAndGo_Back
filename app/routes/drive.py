@@ -79,7 +79,7 @@ data = [
 
 
 # TODO : word->origin
-@tts_bp.route('/download_excel', methods=['GET'])
+@drive_bp.route('/download_excel', methods=['GET'])
 def download_excel():
     # BytesIO 객체를 사용하여 메모리에 엑셀 파일 생성
     output = BytesIO()
