@@ -3,7 +3,7 @@ import re
 from flask import render_template, redirect, url_for, request, session, jsonify
 from sqlalchemy import text
 from app.routes import search_bp
-from app.models.models import db, Word, Meaning
+from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, VocaBookMap, VocaMeaningMap, VocaExampleMap, Bookstore
 
 from flask_login import current_user, login_required, login_user
 
@@ -217,6 +217,37 @@ def get_unicode_range_for_initial(char):
     return f'[{start}-{end}]' # [가-깋]
 
 
+##############
+## 서점 검색 ##
+##############
+
+## 서점 리스트
+# @login_required
+@search_bp.route('/bookstore', methods=['GET'])
+def search_bookstore():
+
+    # 메인 쿼리 : 전체 서점(bookstore) 검색
+    results = (db.session.query(Bookstore).all())
+    
+    # 단어별로 뜻을 매핑하여 결과 생성
+    data = [] # 최종 데이터 담는 리스트
+    voca_map = {} # dict에 하나씩 담기
+    
+    for result in results:
+        voca_map[result.id] = {
+            'id': result.id,
+            'name': result.name,
+            'downloads': result.downloads,
+            'category': json.loads(result.category), # json 형식으로 파싱
+            'color': json.loads(result.color), # json 형식으로 파싱
+            'hide': result.hide,
+            'book_id': result.book_id
+        }
+
+    for voca_data in voca_map.values():
+        data.append(voca_data)
+
+    return jsonify({'code': 200, 'data' : data}), 200
 
 
 # # 서점 데이터 더미

@@ -137,7 +137,7 @@ class VocaBookMap(db.Model):
 
     # 관계 정의
     voca = relationship("Voca", back_populates="voca_books")
-    voca_book = relationship("VocaBook", back_populates="books_voca")
+    voca_book = relationship("VocaBook", back_populates="voca_books")
 
 
 # 단어뜻-단어
