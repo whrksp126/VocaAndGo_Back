@@ -96,7 +96,7 @@ class VocaMeaning(db.Model):
     meaning = Column(String(255), nullable=False)
 
     # 관계 정의
-    meanings_voca = relationship("VocaMeaningMap", back_populates="meaning")
+    voca_meanings = relationship("VocaMeaningMap", back_populates="meaning")
 
 
 # 단어 예문
@@ -107,7 +107,7 @@ class VocaExample(db.Model):
     exam_ko = Column(Text, nullable=True)
 
     # 관계 정의
-    examples_voca = relationship("VocaExampleMap", back_populates="example")
+    voca_examples = relationship("VocaExampleMap", back_populates="example")
 
 
 # 서점
@@ -116,7 +116,7 @@ class Bookstore(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
     downloads = Column(Integer, nullable=False)
-    category = Column(String(255), nullable=False)
+    category = Column(String(50), nullable=False)
     color = Column(String(255), nullable=True)
     hide = Column(String(1), nullable=False)
     book_id = Column(Integer, ForeignKey('voca_book.id'), nullable=False)
@@ -148,7 +148,7 @@ class VocaMeaningMap(db.Model):
 
     # 관계 정의
     voca = relationship("Voca", back_populates="voca_meanings")
-    meaning = relationship("VocaMeaning", back_populates="meanings_voca")
+    meaning = relationship("VocaMeaning", back_populates="voca_meanings")
 
 
 # 단어예문-단어
@@ -159,7 +159,7 @@ class VocaExampleMap(db.Model):
 
     # 관계 정의
     voca = relationship("Voca", back_populates="voca_examples")
-    example = relationship("VocaExample", back_populates="examples_voca")
+    example = relationship("VocaExample", back_populates="voca_examples")
 
 
 class DailySentence(db.Model):

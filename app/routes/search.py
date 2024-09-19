@@ -2,6 +2,7 @@ import json
 import re
 from flask import render_template, redirect, url_for, request, session, jsonify
 from sqlalchemy import text
+from sqlalchemy.orm import joinedload
 from app.routes import search_bp
 from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, VocaBookMap, VocaMeaningMap, VocaExampleMap, Bookstore
 
@@ -221,56 +222,97 @@ def get_unicode_range_for_initial(char):
 ## 서점 검색 ##
 ##############
 
-## 서점 리스트
+## 서점 데이터 API
+# bookstore, voca, voca_meaning, voca_example 테이블의 모든 데이터를 가져옴
 # @login_required
 @search_bp.route('/bookstore', methods=['GET'])
-def search_bookstore():
+def search_bookstore_all():
 
-    # 메인 쿼리 : 전체 서점(bookstore) 검색
-    results = (db.session.query(Bookstore).all())
+    # bookstore 테이블의 모든 데이터를 가져옴
+    bookstores = db.session.query(Bookstore) \
+        .options(
+            joinedload(Bookstore.voca_book)  # VocaBook과의 관계 로드
+                .joinedload(VocaBook.voca_books)  # VocaBookMap 로드
+                .joinedload(VocaBookMap.voca),  # Voca 로드
+            joinedload(Bookstore.voca_book)
+                .joinedload(VocaBook.voca_books)
+                .joinedload(VocaBookMap.voca)
+                .joinedload(Voca.voca_meanings),  # VocaMeaning 로드
+            joinedload(Bookstore.voca_book)
+                .joinedload(VocaBook.voca_books)
+                .joinedload(VocaBookMap.voca)
+                .joinedload(Voca.voca_examples)  # VocaExample 로드
+        ).all()
+
+    if not bookstores:
+        return jsonify({'code': 404, 'message': 'No bookstores found'}), 404
+
+    results = []
     
-    # 단어별로 뜻을 매핑하여 결과 생성
-    data = [] # 최종 데이터 담는 리스트
-    voca_map = {} # dict에 하나씩 담기
-    
-    for result in results:
-        voca_map[result.id] = {
-            'id': result.id,
-            'name': result.name,
-            'downloads': result.downloads,
-            'category': json.loads(result.category), # json 형식으로 파싱
-            'color': json.loads(result.color), # json 형식으로 파싱
-            'hide': result.hide,
-            'book_id': result.book_id
-        }
+    for bookstore in bookstores:
+        voca_book = bookstore.voca_book
+        
+        if voca_book:
+            words = []
+            # VocaBookMap을 통해 Voca 데이터를 가져옴
+            for voca_map in voca_book.voca_books:
+                voca = voca_map.voca
+                
+                # 단어 뜻 가져오기
+                meanings = [meaning_map.meaning.meaning for meaning_map in voca.voca_meanings]
+                
+                # 단어 예문 가져오기
+                examples = [{"origin": example_map.example.exam_en, "meaning": example_map.example.exam_ko}
+                            for example_map in voca.voca_examples]
+                
+                # 단어 정보 구성
+                words.append({
+                    "id": voca.id,
+                    "word": voca.word,
+                    "pronunciation": voca.pronunciation,
+                    "meaning": meanings,
+                    "examples": examples,
+                    "description": ""
+                })
 
-    for voca_data in voca_map.values():
-        data.append(voca_data)
+            # 서점 정보 구성
+            results.append({
+                "id": bookstore.id,
+                "name": bookstore.name,
+                "downloads": bookstore.downloads,
+                "category": bookstore.category,
+                "color": json.loads(bookstore.color),
+                "hide": bookstore.hide,
+                "words": words
+            })
 
-    return jsonify({'code': 200, 'data' : data}), 200
+    return jsonify({'code': 200, 'data': results}), 200
 
 
 # # 서점 데이터 더미
 # vocabulary_store_dummy_data = [
 #   {
-#     id : 1,
-#     name : "토익 준비용 🔥",
-#     downloads : 157025,
-#     category : "HOT",
-#     color : {
-#       main : "#FF8DD4",
-#       sub : "#FFD2EF",
-#       background : "#FFEFFA",
+#     "id" : 1,
+#     "name" : "토익 준비용 🔥",
+#     "downloads" : 157025,
+#     "category" : "HOT",
+#     "color" : {
+#       "main" : "#FF8DD4",
+#       "sub" : "#FFD2EF",
+#       "background" : "#FFEFFA",
 #     },
-#     words : [
+#     "hide": "N",
+#     "words" : [
 #       {
-#         id : 1,
-#         word : "monday",
-#         meaning: ["월요일"],
-#         example: [
-#           {origin : "", meaning : ""}
+#         "id" : 1,
+#         "word" : "be",
+#         "pronunciation": "bi; (강) biː",
+#         "meaning": ["…이다", "있다", "존재하다"],
+#         "examples": [
+#           {"origin" : "I think, therefore I am.", "meaning" : "나는 생각한다, 그러므로 나는 존재한다"},
+#           {"origin" : "Kennedy is no more.", "meaning" : "케네디는 가고 없다"},
 #         ],
-#         description : ""
+#         "description" : ""
 #       },
 #       {
 #         id : 2,
