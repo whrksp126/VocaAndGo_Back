@@ -169,7 +169,7 @@ def download_excel():
 from flask import send_file
 import pandas as pd
 from io import BytesIO
-@drive_bp.route('/backup')
+@drive_bp.route('/backup', methods=['GET'])
 @login_required
 def backup():
     data = request.get_json()
@@ -254,8 +254,6 @@ def backup():
                 pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
 
     output.seek(0)
-
-
 
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
