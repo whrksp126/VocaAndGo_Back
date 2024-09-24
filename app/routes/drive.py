@@ -169,9 +169,10 @@ def download_excel():
 from flask import send_file
 import pandas as pd
 from io import BytesIO
-@drive_bp.route('/backup', methods=['GET'])
+@drive_bp.route('/backup', methods=['POST'])
 @login_required
 def backup():
+    print("ckeck_backup")
     data = request.get_json()
     if not data:
         return jsonify({"error": "제공된 데이터가 없습니다"}), 400
