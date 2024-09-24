@@ -208,24 +208,54 @@ def backup():
         folder_id = folders[0].get('id')
 
     # 엑셀 파일 생성
-    output = io.BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    # output = io.BytesIO()
+    # writer = pd.ExcelWriter(output, engine='xlsxwriter')
 
-    for notebook in data:
-            # DataFrame 생성
-            df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
+    # for notebook in data:
+    #         # DataFrame 생성
+    #         df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
 
-            # 'meaning' 열의 리스트를 쉼표로 구분된 문자열로 변환
-            df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+    #         # 'meaning' 열의 리스트를 쉼표로 구분된 문자열로 변환
+    #         df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
 
-            # 'example' 열도 필요한 경우 같은 방식으로 처리
-            df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
+    #         # 'example' 열도 필요한 경우 같은 방식으로 처리
+    #         df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
 
-            # DataFrame을 엑셀 시트에 저장
-            df.to_excel(writer, sheet_name=notebook['name'], index=False)
+    #         # DataFrame을 엑셀 시트에 저장
+    #         df.to_excel(writer, sheet_name=notebook['name'], index=False)
 
-    writer.close()
+    # writer.close()
+    # output.seek(0)
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        for notebook in data:
+            sheet_name = notebook['name']
+            words = notebook['words']
+
+            # 노트북의 메타데이터를 DataFrame으로 저장
+            metadata = pd.DataFrame([{
+                "name": notebook['name'],
+                "color_main": notebook['color']['main'],
+                "color_background": notebook['color']['background'],
+                "createdAt": notebook['createdAt'],
+                "updatedAt": notebook['updatedAt'],
+                "status": notebook['status'],
+                "id": notebook['id']
+            }])
+
+            # 메타데이터를 시트에 먼저 저장
+            metadata.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0)
+
+            # 단어 데이터 추가
+            if words:
+                df_words = pd.DataFrame(words)
+                df_words.to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
+            else:
+                pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
+
     output.seek(0)
+
+
 
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
