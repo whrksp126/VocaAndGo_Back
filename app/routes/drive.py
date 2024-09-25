@@ -264,7 +264,7 @@ def backup():
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
-    return jsonify({"file_id": file.get('id')})
+    return jsonify({"code": 200})
 
 
 @drive_bp.route('/excel_to_json')
