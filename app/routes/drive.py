@@ -175,7 +175,7 @@ def backup():
     print("ckeck_backup")
     data = request.get_json()
     if not data:
-        return jsonify({"error": "제공된 데이터가 없습니다"}), 400
+        return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
     # token에서 Credentials 객체 생성
     token = session['token']
     credentials = Credentials(
@@ -289,7 +289,7 @@ def excel_to_json():
     folders = results.get('files', [])
 
     if not folders:
-        return jsonify({"error": "백업 폴더가 없습니다"}), 404
+        return jsonify({"code":404, "msg": "백업 폴더가 없습니다"})
 
     folder_id = folders[0]['id']
 
@@ -299,7 +299,7 @@ def excel_to_json():
     files = results.get('files', [])
 
     if not files:
-        return jsonify({"error": "백업 파일이 없습니다"}), 404
+        return jsonify({"code":404, "msg": "백업 파일이 없습니다"})
 
     file_id = files[0]['id']
 
