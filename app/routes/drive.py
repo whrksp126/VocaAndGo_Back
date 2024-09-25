@@ -333,3 +333,75 @@ def excel_to_json():
 
     print("###data:",data)
     return jsonify(data)
+
+
+@drive_bp.route('/excel_to_original_json')
+@login_required
+def excel_to_original_json():
+    # token에서 Credentials 객체 생성
+    token = session['token']
+    credentials = Credentials(
+        token=token['access_token'],
+        refresh_token=token.get('refresh_token'),
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=OAUTH_CLIENT_ID,
+        client_secret=OAUTH_CLIENT_SECRET
+    )
+
+    drive_service = build('drive', 'v3', credentials=credentials)
+
+    # 파일 이름
+    file_name = 'vocabularies_backup.xlsx'
+    
+    # Google Drive에서 파일 검색
+    query = f"name='{file_name}' and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get('files', [])
+
+    if not files:
+        return jsonify({"error": "File not found"}), 404
+
+    file_id = files[0]['id']
+
+    # 파일 다운로드
+    request = drive_service.files().get_media(fileId=file_id)
+    fh = io.BytesIO()
+    downloader = MediaIoBaseDownload(fh, request)
+    done = False
+    while not done:
+        status, done = downloader.next_chunk()
+
+    # 파일의 내용을 읽음
+    fh.seek(0)
+    excel_data = pd.ExcelFile(fh)
+
+    # 데이터를 저장할 리스트
+    data = []
+
+    # 각 시트를 순회
+    for sheet_name in excel_data.sheet_names:
+        # 시트 읽기
+        df = pd.read_excel(excel_data, sheet_name=sheet_name)
+
+        # 'NaN' 값을 빈 문자열로 대체
+        df['meaning'] = df['meaning'].fillna('')
+        df['example'] = df['example'].fillna('')
+        df['description'] = df['description'].fillna('')
+
+        # 'meaning', 'example'을 원래 형식으로 복원
+        df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
+        df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
+
+        # 필요한 데이터를 JSON 형태로 변환
+        words = df.to_dict(orient='records')
+
+        # notebook 구조 생성
+        notebook = {
+            'name': sheet_name,
+            'words': words
+        }
+
+        data.append(notebook)
+
+    print("dadta", data)
+    return jsonify(data)
