@@ -267,7 +267,7 @@ def backup():
     return jsonify({"code": 200})
 
 
-@drive_bp.route('/excel_to_json')
+@drive_bp.route('/excel_to_json', methods=['GET'])
 @login_required
 def excel_to_json():
     # token에서 Credentials 객체 생성
