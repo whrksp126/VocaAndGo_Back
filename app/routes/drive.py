@@ -258,7 +258,7 @@ def backup():
 
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
-        'name': 'vocabularies_backup.xlsx',
+        'name': 'heyvoca_backup.xlsx',
         'parents': [folder_id]  # 파일을 업로드할 폴더 지정
     }
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
