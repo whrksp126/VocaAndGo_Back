@@ -383,10 +383,26 @@ def excel_to_original_json():
         # 시트 읽기
         df = pd.read_excel(excel_data, sheet_name=sheet_name)
 
-        # 'NaN' 값을 빈 문자열로 대체
-        df['meaning'] = df['meaning'].fillna('')
-        df['example'] = df['example'].fillna('')
-        df['description'] = df['description'].fillna('')
+        # 시트의 열 이름 확인
+        print(f"Columns in sheet {sheet_name}: {df.columns}")
+
+        # 'meaning' 열이 있는지 확인하고 없으면 기본값 처리
+        if 'meaning' in df.columns:
+            df['meaning'] = df['meaning'].fillna('')
+        else:
+            df['meaning'] = [''] * len(df)  # 'meaning' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
+
+        # 'example' 열이 있는지 확인하고 없으면 기본값 처리
+        if 'example' in df.columns:
+            df['example'] = df['example'].fillna('')
+        else:
+            df['example'] = [''] * len(df)  # 'example' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
+
+        # 'description' 열이 있는지 확인하고 없으면 기본값 처리
+        if 'description' in df.columns:
+            df['description'] = df['description'].fillna('')
+        else:
+            df['description'] = [''] * len(df)  # 'description' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
 
         # 'meaning', 'example'을 원래 형식으로 복원
         df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
@@ -403,5 +419,5 @@ def excel_to_original_json():
 
         data.append(notebook)
 
-    print("dadta", data)
+    print("Data", data)
     return jsonify(data)
