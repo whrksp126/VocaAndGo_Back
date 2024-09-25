@@ -270,7 +270,6 @@ def backup():
 @drive_bp.route('/excel_to_json')
 @login_required
 def excel_to_json():
-def restore():
     # token에서 Credentials 객체 생성
     token = session['token']
     credentials = Credentials(
