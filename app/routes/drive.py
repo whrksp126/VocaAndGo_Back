@@ -270,6 +270,7 @@ def backup():
 @drive_bp.route('/excel_to_json')
 @login_required
 def excel_to_json():
+def restore():
     # token에서 Credentials 객체 생성
     token = session['token']
     credentials = Credentials(
@@ -282,142 +283,61 @@ def excel_to_json():
 
     drive_service = build('drive', 'v3', credentials=credentials)
 
-    # 파일 이름
-    file_name = 'vocabularies_backup.xlsx'
-    
-    # Google Drive에서 파일 검색
-    query = f"name='{file_name}' and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and trashed=false"
+    # 'HeyVoca' 폴더 검색
+    folder_name = 'HeyVoca'
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id)").execute()
+    folders = results.get('files', [])
+
+    if not folders:
+        return jsonify({"error": "백업 폴더가 없습니다"}), 404
+
+    folder_id = folders[0]['id']
+
+    # 폴더에서 'heyvoca_backup.xlsx' 파일 검색
+    query = f"'{folder_id}' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and name='heyvoca_backup.xlsx' and trashed=false"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
     files = results.get('files', [])
 
     if not files:
-        return jsonify({"error": "File not found"}), 404
+        return jsonify({"error": "백업 파일이 없습니다"}), 404
 
     file_id = files[0]['id']
 
-    # 파일 다운로드
+    # 엑셀 파일 다운로드
     request = drive_service.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
+    fh = BytesIO()
     downloader = MediaIoBaseDownload(fh, request)
+
     done = False
     while not done:
         status, done = downloader.next_chunk()
 
-    # 파일의 내용을 읽음
     fh.seek(0)
-    excel_data = pd.ExcelFile(fh)
 
-    # 데이터를 저장할 리스트
-    data = []
+    # 엑셀 파일을 읽어 JSON으로 변환
+    restored_data = []
+    with pd.ExcelFile(fh) as xls:
+        for sheet_name in xls.sheet_names:
+            # 시트별로 데이터 읽기
+            metadata = pd.read_excel(xls, sheet_name=sheet_name, skiprows=0, nrows=1).to_dict(orient='records')[0]
+            words = pd.read_excel(xls, sheet_name=sheet_name, skiprows=3).fillna('').to_dict(orient='records')
 
-    # 각 시트를 순회
-    for sheet_name in excel_data.sheet_names:
-        # 시트 읽기
-        df = pd.read_excel(excel_data, sheet_name=sheet_name)
+            # JSON 데이터 구조 복원
+            notebook = {
+                "name": metadata["name"],
+                "color": {
+                    "main": metadata["color_main"],
+                    "background": metadata["color_background"]
+                },
+                "createdAt": metadata["createdAt"],
+                "updatedAt": metadata["updatedAt"],
+                "status": metadata["status"],
+                "id": metadata["id"],
+                "words": words
+            }
 
-        # 'NaN' 값을 빈 문자열로 대체
-        df['meaning'] = df['meaning'].fillna('')
-        df['example'] = df['example'].fillna('')
+            restored_data.append(notebook)
 
-        # 'meaning'과 'example'을 리스트로 변환
-        df['meaning'] = df['meaning'].apply(lambda x: x.split(', ') if isinstance(x, str) else x)
-        df['example'] = df['example'].apply(lambda x: x.split('|\n') if isinstance(x, str) else x)
-
-        # 필요한 데이터를 JSON 형태로 변환
-        notebook = {
-            'name': sheet_name,
-            'words': df.to_dict(orient='records')  # 각 행을 딕셔너리 형태로 변환
-        }
-        
-        data.append(notebook)
-
-    print("###data:",data)
-    return jsonify(data)
-
-
-@drive_bp.route('/excel_to_original_json')
-@login_required
-def excel_to_original_json():
-    # token에서 Credentials 객체 생성
-    token = session['token']
-    credentials = Credentials(
-        token=token['access_token'],
-        refresh_token=token.get('refresh_token'),
-        token_uri='https://oauth2.googleapis.com/token',
-        client_id=OAUTH_CLIENT_ID,
-        client_secret=OAUTH_CLIENT_SECRET
-    )
-
-    drive_service = build('drive', 'v3', credentials=credentials)
-
-    # 파일 이름
-    file_name = 'vocabularies_backup.xlsx'
-    
-    # Google Drive에서 파일 검색
-    query = f"name='{file_name}' and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get('files', [])
-
-    if not files:
-        return jsonify({"error": "File not found"}), 404
-
-    file_id = files[0]['id']
-
-    # 파일 다운로드
-    request = drive_service.files().get_media(fileId=file_id)
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
-
-    # 파일의 내용을 읽음
-    fh.seek(0)
-    excel_data = pd.ExcelFile(fh)
-
-    # 데이터를 저장할 리스트
-    data = []
-
-    # 각 시트를 순회
-    for sheet_name in excel_data.sheet_names:
-        # 시트 읽기
-        df = pd.read_excel(excel_data, sheet_name=sheet_name)
-
-        # 시트의 열 이름 확인
-        print(f"Columns in sheet {sheet_name}: {df.columns}")
-
-        # 'meaning' 열이 있는지 확인하고 없으면 기본값 처리
-        if 'meaning' in df.columns:
-            df['meaning'] = df['meaning'].fillna('')
-        else:
-            df['meaning'] = [''] * len(df)  # 'meaning' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
-
-        # 'example' 열이 있는지 확인하고 없으면 기본값 처리
-        if 'example' in df.columns:
-            df['example'] = df['example'].fillna('')
-        else:
-            df['example'] = [''] * len(df)  # 'example' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
-
-        # 'description' 열이 있는지 확인하고 없으면 기본값 처리
-        if 'description' in df.columns:
-            df['description'] = df['description'].fillna('')
-        else:
-            df['description'] = [''] * len(df)  # 'description' 열이 없을 때 기본값으로 빈 문자열 리스트 추가
-
-        # 'meaning', 'example'을 원래 형식으로 복원
-        df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
-        df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
-
-        # 필요한 데이터를 JSON 형태로 변환
-        words = df.to_dict(orient='records')
-
-        # notebook 구조 생성
-        notebook = {
-            'name': sheet_name,
-            'words': words
-        }
-
-        data.append(notebook)
-
-    print("Data", data)
-    return jsonify(data)
+    print("restore_data", restored_data)
+    return jsonify(restored_data)
