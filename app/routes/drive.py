@@ -333,7 +333,7 @@ def excel_to_json():
                 "updatedAt": metadata["updatedAt"],
                 "status": metadata["status"],
                 "id": metadata["id"],
-                "words": words
+                "words": json.loads(words)
             }
 
             restored_data.append(notebook)
