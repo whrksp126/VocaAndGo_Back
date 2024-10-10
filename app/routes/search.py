@@ -228,6 +228,39 @@ def get_unicode_range_for_initial(char):
 @search_bp.route('/bookstore', methods=['GET'])
 def search_bookstore_all():
 
+    # 서점만 가져오는 쿼리 (temp)
+    bookstore_query = (db.session.query(Bookstore).all())
+
+    # 단어별로 뜻을 매핑하여 결과 생성
+    data = [] # 최종 데이터 담는 리스트
+    bookstore_map = {}
+    for bs in bookstore_query:
+        bookstore_map[bs.id] = {
+            'name': bs.name,
+            'downloads': bs.downloads,
+            'category': bs.category,
+            'color': bs.color,
+            'book_id': bs.book_id,
+        }
+
+    for bookstore_data in bookstore_map.values():
+        data.append(bookstore_data)
+
+    return jsonify({'code': 200, 'data' : data}), 200
+
+    '''
+    # 서점 쿼리 : 서점 데이터 검색 (ALL)
+    bookstore_query = (db.session.query(Bookstore)
+                .join(VocaBookMap, Bookstore.book_id == VocaBookMap.book_id).all()
+                )
+    # 여기서부터 다시 만들어 가야해,,,
+    # 서점 쿼리 : 서점 데이터 검색 (ALL)
+    bookstore_query = (db.session.query(Bookstore)
+                .join(VocaBookMap, Bookstore.book_id == VocaBookMap.book_id).all()
+                )
+    '''
+
+    '''
     # bookstore 테이블의 모든 데이터를 가져옴
     bookstores = db.session.query(Bookstore) \
         .options(
@@ -248,7 +281,7 @@ def search_bookstore_all():
         return jsonify({'code': 404, 'message': 'No bookstores found'}), 404
 
     results = []
-    
+
     for bookstore in bookstores:
         voca_book = bookstore.voca_book
         
@@ -285,8 +318,9 @@ def search_bookstore_all():
                 "hide": bookstore.hide,
                 "words": words
             })
+    '''
 
-    return jsonify({'code': 200, 'data': results}), 200
+    return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
 
 # # 서점 데이터 더미
