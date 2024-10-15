@@ -322,6 +322,21 @@ def excel_to_json():
             metadata = pd.read_excel(xls, sheet_name=sheet_name, skiprows=0, nrows=1).to_dict(orient='records')[0]
             words = pd.read_excel(xls, sheet_name=sheet_name, skiprows=3).fillna('').to_dict(orient='records')
 
+            # words 데이터 내 example과 meaning을 JSON으로 변환
+            for word in words:
+                # example, meaning 필드가 JSON 문자열이라면 리스트로 변환
+                if 'example' in word and isinstance(word['example'], str):
+                    try:
+                        word['example'] = json.loads(word['example'])
+                    except json.JSONDecodeError:
+                        word['example'] = [word['example']]  # JSON 파싱 실패 시 문자열 그대로 리스트에 넣음
+
+                if 'meaning' in word and isinstance(word['meaning'], str):
+                    try:
+                        word['meaning'] = json.loads(word['meaning'])
+                    except json.JSONDecodeError:
+                        word['meaning'] = [word['meaning']]  # JSON 파싱 실패 시 문자열 그대로 리스트에 넣음
+
             # JSON 데이터 구조 복원
             notebook = {
                 "name": metadata["name"],
@@ -333,7 +348,7 @@ def excel_to_json():
                 "updatedAt": metadata["updatedAt"],
                 "status": metadata["status"],
                 "id": metadata["id"],
-                "words": json.loads(words)
+                "words": words  # words 데이터를 수정된 형태로 추가
             }
 
             restored_data.append(notebook)
