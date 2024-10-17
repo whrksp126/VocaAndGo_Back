@@ -59,7 +59,7 @@ class User(db.Model):
 
 class UserHasToken(db.Model):
     __tablename__ = 'user_has_token'
-    user_id = Column(BinaryUUID, primary_key=True, ForeignKey('user.id'), nullable=False)
+    user_id = Column(BinaryUUID, ForeignKey('user.id'), primary_key=True, nullable=False)
     token = Column(String(256), primary_key=True, nullable=False)
 
 
