@@ -1,6 +1,8 @@
 from flask import render_template, redirect, url_for, request, session, jsonify, send_file, send_from_directory
 from app import db
 from app.routes import fcm_bp
+from app.models.models import db, User, UserHasToken
+from config import FCM_API_KEY
 
 from flask_login import current_user, login_required, login_user, logout_user
 
@@ -12,6 +14,7 @@ import io
 
 import firebase_admin
 from firebase_admin import credentials, messaging
+from pyfcm import FCMNotification
 
 
 # fcm 서비스 계정 키 파일 경로
@@ -83,3 +86,67 @@ def send_fcm(message):
         print("Error sending message:", e)
 
 
+
+
+########################
+
+# 토큰 저장 API
+@fcm_bp.route('/save-token', methods=['POST'])
+def save_token():
+    token = request.json.get('token')
+
+    if not token:
+        return jsonify({'code': 400, 'msg': "토큰이 없습니다"})
+
+    token_item = db.session.query(UserHasToken)\
+                    .filter(UserHasToken.user_id == current_user.id)\
+                    .filter(UserHasToken.token == token)\
+                    .all()
+
+    if token_item is None:
+        item  = UserHasToken(
+            user_id = current_user.id,
+            token = token,
+        )
+
+        db.session.add(item)
+        db.session.commit()
+
+
+
+# FCM API 키 (Firebase Console에서 확인 가능)
+push_service = FCMNotification(api_key=FCM_API_KEY)
+
+
+# FCM 메시지 전송 함수
+def send_push_notification(title, message, token):
+    result = push_service.notify_single_device(
+        registration_id=token,
+        message_title=title,
+        message_body=message
+    )
+    return result
+
+# 메시지 전송 API
+@fcm_bp.route('/send-notification', methods=['POST'])
+def send_notification():
+    title = request.json.get('title')
+    message = request.json.get('message')
+
+    try:
+        # cursor = db.cursor()
+        # # DB에서 저장된 토큰 조회
+        # cursor.execute("SELECT token FROM fcm_tokens")
+        # tokens = cursor.fetchall()
+
+        tokens = db.session.query(UserHasToken).all()
+
+        # 모든 토큰에 푸시 알림 전송
+        results = []
+        for token in tokens:
+            result = send_push_notification(title, message, token[0])
+            results.append(result)
+
+        return jsonify({"results": results}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

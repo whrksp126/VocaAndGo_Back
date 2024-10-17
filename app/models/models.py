@@ -56,6 +56,13 @@ class User(db.Model):
     def is_authenticated(self):
         return True
 
+
+class UserHasToken(db.Model):
+    __tablename__ = 'user_has_token'
+    user_id = Column(BinaryUUID, primary_key=True, ForeignKey('user.id'), nullable=False)
+    token = Column(String(256), primary_key=True, nullable=False)
+
+
 ##############
 # 기본 테이블 #
 ##############
