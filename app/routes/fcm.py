@@ -94,6 +94,7 @@ def send_fcm(message):
 @fcm_bp.route('/save-token', methods=['POST'])
 def save_token():
     token = request.json.get('token')
+    print("@#$@#$curr", current_user.id)
 
     if not token:
         return jsonify({'code': 400, 'msg': "토큰이 없습니다"})

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login with Google</title>
+</head>
+<body>
+    <h1>Login with Google</h1>
+    <button id="fcm-button">fcm with Google</button>
+
+    <script>
+        // 구글 로그인 버튼 클릭 이벤트 처리
+        document.getElementById('fcm-button').addEventListener('click', function() {
+            // Google OAuth 인증 페이지로 리다이렉션
+            window.location.href = '/fcm/save_token';
+        });
+    </script>
+</body>
+</html>
