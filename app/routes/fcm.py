@@ -17,11 +17,6 @@ from firebase_admin import credentials, messaging
 from pyfcm import FCMNotification
 
 
-# fcm 서비스 계정 키 파일 경로
-#cred = credentials.Certificate("app/config/vocaandgo-firebase-adminsdk-xyi9u-4a73c9d3d8.json")
-#firebase_admin.initialize_app(cred)
-
-
 @fcm_bp.route('/fcm_html')
 def fcm_html():
     return render_template('fcm3.html')
@@ -116,7 +111,7 @@ def save_token():
 
 
 # FCM API 키 (Firebase Console에서 확인 가능)
-push_service = FCMNotification(service_account_file='vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
+push_service = FCMNotification(service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
                                  project_id='vocaandgo')
 
 
