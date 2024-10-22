@@ -91,7 +91,7 @@ def send_fcm(message):
 ########################
 
 # 토큰 저장 API
-@fcm_bp.route('/save-token', methods=['POST'])
+@fcm_bp.route('/save_token', methods=['POST'])
 def save_token():
     token = request.json.get('token')
     print("@#$@#$curr", current_user.id)
@@ -116,26 +116,29 @@ def save_token():
 
 
 # FCM API 키 (Firebase Console에서 확인 가능)
-push_service = FCMNotification(api_key=FCM_API_KEY)
+push_service = FCMNotification(service_account_file='vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
+                                 project_id='vocaandgo')
 
 
 # FCM 메시지 전송 함수
 def send_push_notification(title, message, token):
-    result = push_service.notify_single_device(
-        registration_id=token,
-        message_title=title,
-        message_body=message
-    )
+    result = push_service.notify(fcm_token=token, 
+                                notification_title=title, 
+                                notification_body=message, 
+                                notification_image=None
+                            )
+
     return result
 
 # 메시지 전송 API
-@fcm_bp.route('/send-notification', methods=['POST'])
+@fcm_bp.route('/send-notification', methods=['GET'])
 def send_notification():
-    title = request.json.get('title')
-    message = request.json.get('message')
+    # title = request.json.get('title')
+    # message = request.json.get('message')
+    title = 'test_title'
+    message = 'test_message'
 
     try:
-        # cursor = db.cursor()
         # # DB에서 저장된 토큰 조회
         # cursor.execute("SELECT token FROM fcm_tokens")
         # tokens = cursor.fetchall()
@@ -145,7 +148,7 @@ def send_notification():
         # 모든 토큰에 푸시 알림 전송
         results = []
         for token in tokens:
-            result = send_push_notification(title, message, token[0])
+            result = send_push_notification(title, message, token.token)
             results.append(result)
 
         return jsonify({"results": results}), 200
