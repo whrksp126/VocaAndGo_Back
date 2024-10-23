@@ -3,6 +3,8 @@ from celery.schedules import crontab, timedelta
 import logging
 import os
 
+from app.routes.fcm import send_notification
+
 # Celery 설정
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
@@ -30,13 +32,14 @@ logger = logging.getLogger(__name__)
 # Celery 작업 정의
 @celery.task
 def send_fcm_message():
+    send_notification()     # fcm 함수 실행
     logger.info('Successfully sent message:')
 
 # Celery Beat 스케줄 설정
 celery.conf.beat_schedule = {
     'send-fcm-every-10-seconds': {
         'task': 'app.celery_worker_beat.send_fcm_message',
-        'schedule': timedelta(seconds=10),  # 10초마다 실행
+        'schedule': crontab(hour=13, minute=0, day_of_week='*') # KST 22:00
     },
 }
 celery.conf.timezone = 'UTC'
