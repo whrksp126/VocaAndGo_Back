@@ -19,7 +19,6 @@ def send_daily_sentence():
     item = DailySentence.query\
                     .filter(func.date(DailySentence.date) == today)\
                     .first()
-
     res = {
         'sentence': item.sentence,
         'meaning': item.meaning
