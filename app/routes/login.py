@@ -107,6 +107,7 @@ def authorize_google():
         'token': token['access_token'],
         'email': user.email,
         'name': user.name,
+        'type': 'web',
         'status': 200
     }
     redirect_url = f"{front_end_url}?{urlencode(query_params)}"
