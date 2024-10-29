@@ -83,7 +83,7 @@ class VocaBook(db.Model):
     voca_books = relationship("VocaBookMap", back_populates="voca_book")
 
 
-# 단어
+# 단어 클래스 수정본
 class Voca(db.Model):
     __tablename__ = 'voca'
     id = Column(Integer, primary_key=True)
@@ -95,7 +95,12 @@ class Voca(db.Model):
     voca_meanings = relationship("VocaMeaningMap", back_populates="voca")
     voca_examples = relationship("VocaExampleMap", back_populates="voca")
 
+    def __init__(self, word, pronunciation=None):
+        self.word = word
+        self.pronunciation = pronunciation
 
+    def __repr__(self):
+        return f"<Voca(word='{self.word}', pronunciation='{self.pronunciation}')>"
 # 단어 뜻
 class VocaMeaning(db.Model):
     __tablename__ = 'voca_meaning'
