@@ -23,5 +23,4 @@ def send_daily_sentence():
         'sentence': item.sentence,
         'meaning': item.meaning
     }
-    
     return {'code' : 200, 'data' : res}
