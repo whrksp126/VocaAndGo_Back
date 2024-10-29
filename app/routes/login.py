@@ -104,7 +104,7 @@ def authorize_google():
     login_user(user)
     front_end_url = 'https://voca.ghmate.com/html/login.html'
     query_params = {
-        'token': token['access_token'],
+        'googleId' : user.id,
         'email': user.email,
         'name': user.name,
         'type': 'web',
