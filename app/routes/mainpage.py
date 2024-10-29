@@ -13,7 +13,6 @@ import json
 
 # TODO: item 없으면 어떻게 보내줄까용?
 @mainpage_bp.route('/')
-@login_required
 def send_daily_sentence():
     today = (datetime.utcnow() + timedelta(hours=9)).date()
     item = DailySentence.query\
