@@ -17,7 +17,6 @@ def index():
 ################
 # 사전 검색 API #
 ################
-
 ## 영어(단어) 전체 검색
 # @login_required
 @search_bp.route('/en', methods=['GET'])
@@ -30,39 +29,41 @@ def search_voca_word_en():
         return jsonify(['잘못된 요청'])
 
     # 서브 쿼리 : 해당 단어의 id 검색(오름차순 기준 최대 10개까지)
-    subquery = (db.session.query(Word.id)
-                .filter(Word.word.like(word))
-                .order_by(Word.word.asc())
+    subquery = (db.session.query(Voca.id)
+                .filter(Voca.word.like(f"%{word}%"))
+                .order_by(Voca.word.asc())
                 .limit(10)
                 .subquery())
 
-    # 메인 쿼리 : word, meaning 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색 
-    results = (db.session.query(Word, Meaning)
-               .outerjoin(Meaning, Word.id == Meaning.word_id)
-               .filter(Word.id.in_(subquery))
+    # 메인 쿼리 : word, meaning 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색
+    results = (db.session.query(Voca, VocaMeaning)
+               .outerjoin(VocaMeaningMap, Voca.id == VocaMeaningMap.voca_id)
+               .outerjoin(VocaMeaning, VocaMeaningMap.meaning_id == VocaMeaning.id)
+               .filter(Voca.id.in_(subquery))
                .all())
     
     # 단어별로 뜻을 매핑하여 결과 생성
     data = [] # 최종 데이터 담는 리스트
     word_meaning_map = {}
     for word, meaning in results:
-        example = json.loads(word.example) if word.example else None
-        if isinstance(example, list):
-            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
-        else:
-            example = None 
+        # 예문 데이터 처리
+        example_data = []
+        for example_map in db.session.query(VocaExampleMap).filter_by(voca_id=word.id).all():
+            example = db.session.query(VocaExample).filter_by(id=example_map.example_id).first()
+            if example:
+                example_data.append({"id": example.id, "exam_en": example.exam_en, "exam_ko": example.exam_ko})
 
+        # 단어 및 뜻 데이터 처리
         if word.id not in word_meaning_map:
             word_meaning_map[word.id] = {
-                #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': example,
+                'examples': example_data,
                 'meanings': []
             }
+
         if meaning:
             word_meaning_map[word.id]['meanings'].append(meaning.meaning)
-
 
     for word_data in word_meaning_map.values():
         data.append(word_data)
@@ -83,37 +84,41 @@ def search_word_en():
     search_pattern = f'{partial_word}%'
 
     # 서브 쿼리 : 해당 단어의 id 검색(오름차순 기준 최대 10개까지)
-    subquery = (db.session.query(Word.id)
-                .filter(Word.word.like(search_pattern))
-                .order_by(Word.word.asc())
+    subquery = (db.session.query(Voca.id)
+                .filter(Voca.word.like(search_pattern))
+                .order_by(Voca.word.asc())
                 .limit(10)
                 .subquery())
 
-    # 메인 쿼리 : word, meaning 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색 
-    results = (db.session.query(Word, Meaning)
-               .outerjoin(Meaning, Word.id == Meaning.word_id)
-               .filter(Word.id.in_(subquery))
+    # 메인 쿼리 : word, meaning, example 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색 
+    results = (db.session.query(Voca, VocaMeaning, VocaExample)
+               .outerjoin(VocaMeaningMap, Voca.id == VocaMeaningMap.voca_id)
+               .outerjoin(VocaMeaning, VocaMeaningMap.meaning_id == VocaMeaning.id)
+               .outerjoin(VocaExampleMap, Voca.id == VocaExampleMap.voca_id)
+               .outerjoin(VocaExample, VocaExampleMap.example_id == VocaExample.id)
+               .filter(Voca.id.in_(subquery))
                .all())
     
-    # 단어별로 뜻을 매핑하여 결과 생성
+    # 단어별로 뜻과 예문을 매핑하여 결과 생성
     data = [] # 최종 데이터 담는 리스트
     word_meaning_map = {}
-    for word, meaning in results:
-        example = json.loads(word.example) if word.example else None
-        if isinstance(example, list):
-            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
-        else:
-            example = None 
+    for word, meaning, example in results:
+        # 단어 및 뜻 데이터 처리
         if word.id not in word_meaning_map:
             word_meaning_map[word.id] = {
-                #'id': word.id,
                 'word': word.word,
                 'pronunciation': word.pronunciation,
-                'example': example,
+                'examples': [],
                 'meanings': []
             }
+        
+        # 뜻 추가
         if meaning:
             word_meaning_map[word.id]['meanings'].append(meaning.meaning)
+        
+        # 예문 추가
+        if example:
+            word_meaning_map[word.id]['examples'].append({"id": example.id, "exam_en": example.exam_en, "exam_ko": example.exam_ko})
 
     for word_data in word_meaning_map.values():
         data.append(word_data)
@@ -126,9 +131,7 @@ def search_word_en():
 @search_bp.route('/partial/ko', methods=['GET'])
 def search_word_korean():
     partial_word = request.args.get('word')
-    word_split = [] # 한 글자씩 담기
-    for w in range(len(partial_word)):
-        word_split.append(partial_word[w])
+    word_split = list(partial_word) if partial_word else [] # 한 글자씩 담기
 
     if not partial_word:
         return jsonify({'code': 400, 'message': '잘못된 요청입니다.'}), 400
@@ -138,48 +141,54 @@ def search_word_korean():
 
     if identify_character(first_char) == '초성':
         # 전체 초성인 경우
-        regex_pattern = '^'
-        for w in word_split:
-            unicode_range = get_unicode_range_for_initial(w)
-            regex_pattern += unicode_range
+        regex_pattern = '^' + ''.join(get_unicode_range_for_initial(w) for w in word_split)
     elif identify_character(first_char) == '한글' and identify_character(last_char) == '초성':
         # 마지막 글자만 초성일 경우
-        regex_pattern = '^' + ''.join(map(re.escape, partial_word[:-1]))
-        unicode_range = get_unicode_range_for_initial(last_char)
-        regex_pattern += unicode_range
+        regex_pattern = '^' + re.escape(''.join(partial_word[:-1])) + get_unicode_range_for_initial(last_char)
     elif identify_character(first_char) == '한글' and identify_character(last_char) == '한글':
         # 한글인 경우
         regex_pattern = re.escape(partial_word) + '.*'
     else:
         return jsonify({'code': 400, 'message': '잘못된 요청입니다.'}), 400
     
-    #print('정규표현식 패턴:', regex_pattern)
-
     # SQL 쿼리 작성
     query = text(f"""
-        SELECT * 
-        FROM meaning 
-        WHERE REPLACE(meaning, ' ', '') REGEXP :pattern 
-        ORDER BY meaning ASC 
+        SELECT voca_meaning.id, voca_meaning.meaning, voca_meaning_map.voca_id
+        FROM voca_meaning
+        JOIN voca_meaning_map ON voca_meaning.id = voca_meaning_map.meaning_id
+        WHERE REPLACE(voca_meaning.meaning, ' ', '') REGEXP :pattern
+        ORDER BY voca_meaning.meaning ASC
         LIMIT 10
     """)
 
     # 쿼리 실행
     results = db.session.execute(query, {'pattern': regex_pattern}).fetchall()
 
-    # 결과를 JSON 형태로 반환 (word + meaning)
+    # 결과를 JSON 형태로 반환 (word + meaning + example)
     result_list = []
+    voca_ids = [result.voca_id for result in results]
+    voca_records = db.session.query(Voca).filter(Voca.id.in_(voca_ids)).all()
+    voca_dict = {voca.id: voca for voca in voca_records}
+
     for result in results:
-        word = db.session.query(Word).filter_by(id=result.word_id).first()
-        example = json.loads(word.example) if word.example else None
-        if isinstance(example, list):
-            example = [{"origin": item["exam_en"], "meaning": item["exam_ko"]} for item in example]
-        else:
-            example = None 
+        voca = voca_dict.get(result.voca_id)
+        
+        if not voca:
+            continue
+
+        # 예문 데이터 처리
+        example_data = []
+        example_maps = db.session.query(VocaExampleMap).filter_by(voca_id=voca.id).all()
+        example_ids = [example_map.example_id for example_map in example_maps]
+        examples = db.session.query(VocaExample).filter(VocaExample.id.in_(example_ids)).all()
+        
+        for example in examples:
+            example_data.append({"id": example.id, "exam_en": example.exam_en, "exam_ko": example.exam_ko})
+
         result_data = {
-            'word': word.word,
-            'pronunciation': word.pronunciation,
-            'example': example,
+            'word': voca.word,
+            'pronunciation': voca.pronunciation,
+            'examples': example_data,
             'meaning': result.meaning,
         }
         result_list.append(result_data)
