@@ -182,6 +182,8 @@ def login_google_app():
     # 사용자 정보를 세션에 저장
     session['token'] = access_token
     session['user_id'] = user.id
+    login_user(user)
+
 
     return jsonify({ 'code' : 200, 'status': 'success'})
 
