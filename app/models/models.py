@@ -15,6 +15,7 @@ import enum
 
 class BinaryUUID(TypeDecorator):
     impl = BINARY(16)
+    cache_ok = True  # 캐시 키 사용을 허용하여 경고 제거
 
     def process_bind_param(self, value, dialect=None):
         if not value:
