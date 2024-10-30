@@ -17,7 +17,33 @@ from urllib.parse import urlencode
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
+from cryptography.fernet import Fernet
+import base64
+import os
 
+# SECRET_KEY 환경 변수를 가져오고, 32바이트로 패딩하여 Fernet 키 생성
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
+
+# 32바이트로 패딩하고 base64 인코딩된 키 생성
+padded_key = SECRET_KEY.ljust(32, "!")[:32]
+encoded_key = base64.urlsafe_b64encode(padded_key.encode())
+cipher_suite = Fernet(encoded_key)
+
+def encrypt_token(token):
+    try:
+        return cipher_suite.encrypt(token.encode()).decode('utf-8')
+    except Exception as e:
+        print(f"Error encrypting token: {str(e)}")
+        return None
+
+def decrypt_token(encrypted_token):
+    try:
+        return cipher_suite.decrypt(encrypted_token.encode()).decode('utf-8')
+    except Exception as e:
+        print(f"Error decrypting token: {str(e)}")
+        return None
 
 
 ###### 엑셀 테스트 ######
@@ -180,7 +206,7 @@ def backup():
     
     credentials = Credentials(
         token=session['access_token'],
-        refresh_token=user.refresh_token,
+        refresh_token=decrypt_token(user.refresh_token),
         token_uri='https://oauth2.googleapis.com/token',
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
