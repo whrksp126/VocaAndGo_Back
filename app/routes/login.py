@@ -19,6 +19,19 @@ from urllib.parse import urlencode
 from requests_oauthlib import OAuth2Session
 from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 
+from cryptography.fernet import Fernet
+import base64
+import os
+# 암호화 키를 SECRET_KEY 환경 변수에서 가져옵니다.
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
+cipher_suite = Fernet(base64.urlsafe_b64encode(SECRET_KEY.encode()))
+def encrypt_token(token):
+    return cipher_suite.encrypt(token.encode()).decode('utf-8')
+
+def decrypt_token(encrypted_token):
+    return cipher_suite.decrypt(encrypted_token.encode()).decode('utf-8')
 
 @login_bp.route('/')
 @login_required
@@ -57,54 +70,60 @@ def login_google():
 # 인증 콜백 라우트: OAuth2 인증 완료 후 실행
 @login_bp.route('/login_google/callback')
 def authorize_google():
-    # 상태(state)를 가져옴
     state = session.pop('oauth_state', None)
-    # 사용자가 리디렉션된 후에 받은 정보를 가져옵니다.
     authorization_response = request.url
     if state is None or state != request.args.get('state'):
         return 'Invalid OAuth state', 400
-    # 사용자가 인증을 마치고 리디렉션 된 후, 코드를 얻어서 토큰을 교환합니다.
-    oauth = OAuth2Session(OAUTH_CLIENT_ID, redirect_uri=OAUTH_REDIRECT_URI, state=state, 
-                          scope=[
-                                'https://www.googleapis.com/auth/userinfo.profile',
-                                'https://www.googleapis.com/auth/userinfo.email',
-                                'openid',
-                                'https://www.googleapis.com/auth/drive.file'
-                              ]
-                        )
+
+    oauth = OAuth2Session(
+        OAUTH_CLIENT_ID,
+        redirect_uri=OAUTH_REDIRECT_URI,
+        state=state,
+        scope=[
+            'https://www.googleapis.com/auth/userinfo.profile',
+            'https://www.googleapis.com/auth/userinfo.email',
+            'openid',
+            'https://www.googleapis.com/auth/drive.file'
+        ]
+    )
     try:
         token = oauth.fetch_token(
             'https://accounts.google.com/o/oauth2/token',
             authorization_response=authorization_response,
             client_secret=OAUTH_CLIENT_SECRET
         )
-        # 토큰에서 사용자 정보 추출
         userinfo = oauth.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
     except Exception as e:
         print(f"Error during token fetch or userinfo fetch: {str(e)}")
         return f"An error occurred: {str(e)}", 500
-    # 토큰 정보를 세션에 저장
-    session['token'] = token
-    # 사용자 정보 확인
+
+    # 기존 사용자 조회
     user = User.query.filter_by(google_id=userinfo['id']).first()
     if user is None:
-        # 사용자가 존재하지 않으면 회원가입 처리
-        new_user = User(
+        # 새 사용자 생성 및 리프레시 토큰 저장
+        user = User(
             email=userinfo['email'],
             google_id=userinfo['id'],
             name=userinfo.get('name', ''),
-            phone=None
+            phone=None,
+            refresh_token=encrypt_token(token['refresh_token'])
         )
-        db.session.add(new_user)
-        db.session.commit()
-        user = new_user
+        db.session.add(user)
+    else:
+        # 기존 사용자의 리프레시 토큰 갱신
+        if 'refresh_token' in token:
+            user.refresh_token = encrypt_token(token['refresh_token'])
+    db.session.commit()
 
-    # 사용자 정보를 세션에 저장
+    # 세션에 사용자 ID와 액세스 토큰 저장
     session['user_id'] = user.id
+    session['access_token'] = token['access_token']
     login_user(user)
+
+    # 리다이렉트 URL 생성
     front_end_url = 'https://voca.ghmate.com/html/login.html'
     query_params = {
-        'googleId' : user.id,
+        'googleId': user.id,
         'email': user.email,
         'name': user.name,
         'type': 'web',
@@ -113,9 +132,8 @@ def authorize_google():
     redirect_url = f"{front_end_url}?{urlencode(query_params)}"
     return redirect(redirect_url)
 
-    # # return jsonify({'name': user.name, 'email': user.email}), 200
 
-# 웹뷰앱 로그인 처리
+# 앱 로그인 처리
 @login_bp.route('/login_google/callback/app', methods=['POST'])
 def login_google_app():
     data = request.json
@@ -125,8 +143,7 @@ def login_google_app():
     email = data.get('email')
     name = data.get('name')
 
-    # 토큰 정보를 세션에 저장
-    session['token'] = access_token
+
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=google_id).first()
     if user is None:
@@ -136,20 +153,21 @@ def login_google_app():
             google_id = google_id,
             name = name,
             phone = None,
-            refresh_token = refresh_token
+            refresh_token = encrypt_token(refresh_token)
         )
         db.session.add(user)
     else:
-        user.refresh_token = refresh_token  # 새로운 refresh_token으로 갱신
+        user.refresh_token = encrypt_token(refresh_token)
     db.session.commit()
     # 사용자 정보를 세션에 저장
+    session['token'] = access_token
     session['user_id'] = user.id
 
     return jsonify({ 'code' : 200, 'status': 'success'})
 
 # 토큰 갱신 함수
 def refresh_access_token(user):
-    refresh_token = user.refresh_token
+    refresh_token = decrypt_token(user.refresh_token)
     token_url = "https://accounts.google.com/o/oauth2/token"
     data = {
         'client_id': OAUTH_CLIENT_ID,
