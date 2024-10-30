@@ -203,18 +203,14 @@ def backup():
     data = request.get_json()
     if not data:
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
-    # token에서 Credentials 객체 생성
     user = User.query.filter_by(google_id=session['user_id']).first()
-    # 리프레시 토큰을 복호화하고 자격 증명 생성
     credentials = Credentials(
         token=session['access_token'],
-        refresh_token=decrypt_token(user.refresh_token),
+        refresh_token=user.refresh_token,
         token_uri='https://oauth2.googleapis.com/token',
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
     )
-    # 새로운 액세스 토큰 요청
-    credentials.refresh(Request())
     drive_service = build('drive', 'v3', credentials=credentials)
 
     # 폴더 이름
