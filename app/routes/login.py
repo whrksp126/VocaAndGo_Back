@@ -117,7 +117,7 @@ def authorize_google():
 
 # 웹뷰앱 로그인 처리
 @login_bp.route('/login_google/callback/app', methods=['POST'])
-def authorize_google():
+def login_google_app():
     data = request.json
     google_id = data.get('googleId')
     access_token = data.get('accessToken')
