@@ -114,27 +114,16 @@ def authorize_google():
     # 기존 사용자 조회
     user = User.query.filter_by(google_id=userinfo['id']).first()
     if user is None:
-        # 새 사용자 생성 및 리프레시 토큰 저장
-        encrypted_refresh_token = encrypt_token(token['refresh_token'])
-        if encrypted_refresh_token is None:
-            return 'Token encryption error', 500
-
         user = User(
             email=userinfo['email'],
             google_id=userinfo['id'],
             name=userinfo.get('name', ''),
             phone=None,
-            refresh_token=encrypted_refresh_token
+            refresh_token=token['refresh_token']
         )
         db.session.add(user)
     else:
-        # 기존 사용자의 리프레시 토큰 갱신
-        if 'refresh_token' in token:
-            encrypted_refresh_token = encrypt_token(token['refresh_token'])
-            if encrypted_refresh_token is None:
-                return 'Token encryption error', 500
-
-            user.refresh_token = encrypted_refresh_token
+        user.refresh_token = token['refresh_token']
     db.session.commit()
 
     # 세션에 사용자 ID와 액세스 토큰 저장
@@ -173,11 +162,11 @@ def login_google_app():
             google_id = google_id,
             name = name,
             phone = None,
-            refresh_token = encrypt_token(refresh_token)
+            refresh_token = refresh_token
         )
         db.session.add(user)
     else:
-        user.refresh_token = encrypt_token(refresh_token)
+        user.refresh_token = refresh_token
     db.session.commit()
     # 사용자 정보를 세션에 저장
     session['access_token'] = access_token
@@ -189,12 +178,11 @@ def login_google_app():
 
 # 토큰 갱신 함수
 def refresh_access_token(user):
-    refresh_token = decrypt_token(user.refresh_token)
     token_url = "https://accounts.google.com/o/oauth2/token"
     data = {
         'client_id': OAUTH_CLIENT_ID,
         'client_secret': OAUTH_CLIENT_SECRET,
-        'refresh_token': refresh_token,
+        'refresh_token': user.refresh_token,
         'grant_type': 'refresh_token'
     }
     response = requests.post(token_url, data=data)
