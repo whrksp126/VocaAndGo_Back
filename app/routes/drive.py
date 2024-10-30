@@ -17,35 +17,7 @@ from google.auth.transport.requests import Request
 from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
-from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
-
-from cryptography.fernet import Fernet
-import base64
-import os
-
-# SECRET_KEY 환경 변수를 가져오고, 32바이트로 패딩하여 Fernet 키 생성
-SECRET_KEY = os.getenv("SECRET_KEY")
-if not SECRET_KEY:
-    raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
-
-# 32바이트로 패딩하고 base64 인코딩된 키 생성
-padded_key = SECRET_KEY.ljust(32, "!")[:32]
-encoded_key = base64.urlsafe_b64encode(padded_key.encode())
-cipher_suite = Fernet(encoded_key)
-
-def encrypt_token(token):
-    try:
-        return cipher_suite.encrypt(token.encode()).decode('utf-8')
-    except Exception as e:
-        print(f"Error encrypting token: {str(e)}")
-        return None
-
-def decrypt_token(encrypted_token):
-    try:
-        return cipher_suite.decrypt(encrypted_token.encode()).decode('utf-8')
-    except Exception as e:
-        print(f"Error decrypting token: {str(e)}")
-        return None
+from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI, OAUTH_ANDROID_PRODUCTION_CLIENT_ID, OAUTH_ANDROID_PLAY_STORE_CLIENT_ID
 
 
 ###### 엑셀 테스트 ######
@@ -203,16 +175,31 @@ def backup():
     data = request.get_json()
     if not data:
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
+    drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
-    credentials = Credentials(
-        token=session['access_token'],
-        refresh_token=user.refresh_token,
-        token_uri='https://oauth2.googleapis.com/token',
-        client_id=OAUTH_CLIENT_ID,
-        client_secret=OAUTH_CLIENT_SECRET
-    )
-    drive_service = build('drive', 'v3', credentials=credentials)
+    if session['os'] == 'web' :
+        credentials = Credentials(
+            token=session['access_token'],
+            refresh_token=user.refresh_token,
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=OAUTH_CLIENT_ID,
+            client_secret=OAUTH_CLIENT_SECRET
+        )
+        drive_service = build('drive', 'v3', credentials=credentials)
+    elif session['os'] == 'android':
+        # client_secret 없이 Credentials 생성
+        credentials = Credentials(
+            token=session['access_token'],  # 저장된 access_token
+            refresh_token=user.refresh_token,  # 저장된 refresh_token
+            token_uri='https://oauth2.googleapis.com/token',
+            client_id=OAUTH_ANDROID_PRODUCTION_CLIENT_ID  # Android 클라이언트 ID
+        )
+        # access_token 갱신 필요 시 refresh() 호출
+        if not credentials.valid or credentials.expired:
+            credentials.refresh(Request())  # refresh_token을 사용해 갱신
 
+        # 갱신된 credentials로 Google Drive API 클라이언트 생성
+        drive_service = build('drive', 'v3', credentials=credentials)
     # 폴더 이름
     folder_name = 'HeyVoca'
     
