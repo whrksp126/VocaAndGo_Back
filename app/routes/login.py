@@ -138,12 +138,11 @@ def authorize_google():
 @login_bp.route('/login_google/callback/app', methods=['POST'])
 def login_google_app():
     data = request.json
-    google_id = data.get('googleId')
-    access_token = data.get('accessToken')
-    refresh_token = data.get('refreshToken')
+    google_id = data.get('google_id')
+    access_token = data.get('access_token')
+    refresh_token = data.get('refresh_token')
     email = data.get('email')
     name = data.get('name')
-
 
     # 사용자 정보 확인
     user = User.query.filter_by(google_id=google_id).first()
