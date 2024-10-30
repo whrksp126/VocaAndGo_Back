@@ -180,7 +180,7 @@ def login_google_app():
         user.refresh_token = encrypt_token(refresh_token)
     db.session.commit()
     # 사용자 정보를 세션에 저장
-    session['token'] = access_token
+    session['access_token'] = access_token
     session['user_id'] = user.id
     login_user(user)
 
