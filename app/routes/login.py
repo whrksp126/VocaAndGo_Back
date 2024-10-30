@@ -22,11 +22,12 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 from cryptography.fernet import Fernet
 import base64
 import os
-# 암호화 키를 SECRET_KEY 환경 변수에서 가져옵니다.
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
-cipher_suite = Fernet(base64.urlsafe_b64encode(SECRET_KEY.encode()))
+padded_key = SECRET_KEY.ljust(32, "!")[:32]
+encoded_key = base64.urlsafe_b64encode(padded_key.encode())
+cipher_suite = Fernet(encoded_key)
 def encrypt_token(token):
     return cipher_suite.encrypt(token.encode()).decode('utf-8')
 
