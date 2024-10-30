@@ -3,6 +3,7 @@ from app import db
 from app.routes import drive_bp
 from app.models.models import User
 
+
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,6 +13,7 @@ import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBaseDownload
+from google.auth.transport.requests import Request
 from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
@@ -203,6 +205,7 @@ def backup():
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
     # token에서 Credentials 객체 생성
     user = User.query.filter_by(google_id=session['user_id']).first()
+    # 리프레시 토큰을 복호화하고 자격 증명 생성
     credentials = Credentials(
         token=session['access_token'],
         refresh_token=decrypt_token(user.refresh_token),
@@ -210,7 +213,8 @@ def backup():
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
     )
-
+    # 새로운 액세스 토큰 요청
+    credentials.refresh(Request())
     drive_service = build('drive', 'v3', credentials=credentials)
 
     # 폴더 이름
