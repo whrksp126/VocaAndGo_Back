@@ -22,17 +22,30 @@ from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
 from cryptography.fernet import Fernet
 import base64
 import os
+
+# SECRET_KEY 환경 변수를 가져오고, 32바이트로 패딩하여 Fernet 키 생성
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise ValueError("SECRET_KEY 환경 변수가 설정되지 않았습니다.")
+
+# 32바이트로 패딩하고 base64 인코딩된 키 생성
 padded_key = SECRET_KEY.ljust(32, "!")[:32]
 encoded_key = base64.urlsafe_b64encode(padded_key.encode())
 cipher_suite = Fernet(encoded_key)
+
 def encrypt_token(token):
-    return cipher_suite.encrypt(token.encode()).decode('utf-8')
+    try:
+        return cipher_suite.encrypt(token.encode()).decode('utf-8')
+    except Exception as e:
+        print(f"Error encrypting token: {str(e)}")
+        return None
 
 def decrypt_token(encrypted_token):
-    return cipher_suite.decrypt(encrypted_token.encode()).decode('utf-8')
+    try:
+        return cipher_suite.decrypt(encrypted_token.encode()).decode('utf-8')
+    except Exception as e:
+        print(f"Error decrypting token: {str(e)}")
+        return None
 
 @login_bp.route('/')
 @login_required
@@ -102,18 +115,26 @@ def authorize_google():
     user = User.query.filter_by(google_id=userinfo['id']).first()
     if user is None:
         # 새 사용자 생성 및 리프레시 토큰 저장
+        encrypted_refresh_token = encrypt_token(token['refresh_token'])
+        if encrypted_refresh_token is None:
+            return 'Token encryption error', 500
+
         user = User(
             email=userinfo['email'],
             google_id=userinfo['id'],
             name=userinfo.get('name', ''),
             phone=None,
-            refresh_token=encrypt_token(token['refresh_token'])
+            refresh_token=encrypted_refresh_token
         )
         db.session.add(user)
     else:
         # 기존 사용자의 리프레시 토큰 갱신
         if 'refresh_token' in token:
-            user.refresh_token = encrypt_token(token['refresh_token'])
+            encrypted_refresh_token = encrypt_token(token['refresh_token'])
+            if encrypted_refresh_token is None:
+                return 'Token encryption error', 500
+
+            user.refresh_token = encrypted_refresh_token
     db.session.commit()
 
     # 세션에 사용자 ID와 액세스 토큰 저장
@@ -132,7 +153,6 @@ def authorize_google():
     }
     redirect_url = f"{front_end_url}?{urlencode(query_params)}"
     return redirect(redirect_url)
-
 
 # 앱 로그인 처리
 @login_bp.route('/login_google/callback/app', methods=['POST'])
