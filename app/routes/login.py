@@ -138,7 +138,7 @@ def authorize_google():
     db.session.commit()
 
     # 세션에 사용자 ID와 액세스 토큰 저장
-    session['user_id'] = user.id
+    session['user_id'] = user.google_id
     session['access_token'] = token['access_token']
     login_user(user)
 
