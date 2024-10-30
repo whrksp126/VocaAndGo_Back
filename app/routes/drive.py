@@ -4,7 +4,6 @@ from app.routes import drive_bp
 from app.models.models import User
 
 from flask_login import current_user, login_required, login_user, logout_user
-
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -177,10 +176,11 @@ def backup():
     if not data:
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
     # token에서 Credentials 객체 생성
-    token = session['token']
+    user = User.query.filter_by(google_id=session['user_id']).first()
+    
     credentials = Credentials(
-        token=token['access_token'],
-        refresh_token=token.get('refresh_token'),
+        token=session['access_token'],
+        refresh_token=user.refresh_token,
         token_uri='https://oauth2.googleapis.com/token',
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
