@@ -181,7 +181,7 @@ def login_google_app():
     db.session.commit()
     # 사용자 정보를 세션에 저장
     session['access_token'] = access_token
-    session['user_id'] = user.google_id
+    session['user_id'] = google_id
     login_user(user)
 
 
