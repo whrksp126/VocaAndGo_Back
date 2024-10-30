@@ -203,6 +203,12 @@ def backup():
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
     # token에서 Credentials 객체 생성
     user = User.query.filter_by(google_id=session['user_id']).first()
+    if user is None:
+        print("User not found.")
+        return "User not found", 404  # 사용자 존재하지 않을 때의 응답
+    elif user.refresh_token is None:
+        print("Refresh token not found for user.")
+        return "Refresh token not found", 400  # refresh_token이 없을 때의 응답
     
     credentials = Credentials(
         token=session['access_token'],
