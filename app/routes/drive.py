@@ -188,6 +188,7 @@ def backup():
         )
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
+        print('#### android')
         credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
     
