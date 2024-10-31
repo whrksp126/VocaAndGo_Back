@@ -4,9 +4,9 @@ from app.routes import drive_bp
 from app.models.models import User
 from flask_login import current_user, login_required, login_user, logout_user
 import json
+import requests
 from werkzeug.security import generate_password_hash, check_password_hash
 from io import BytesIO
-import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBaseDownload
@@ -166,42 +166,22 @@ def backup():
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
     drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
-    if session['os'] == 'web' :
-        print('#### web')
-        credentials = Credentials(
-            token=session['access_token'],
-            refresh_token=user.refresh_token,
-            token_uri='https://oauth2.googleapis.com/token',
-            client_id=OAUTH_CLIENT_ID,
-            client_secret=OAUTH_CLIENT_SECRET
-        )
-        drive_service = build('drive', 'v3', credentials=credentials)
-    elif session['os'] == 'android':
-        print('#### android')
-        credentials = Credentials(token=session['access_token'])
-        drive_service = build('drive', 'v3', credentials=credentials)
-    print('#### drive_service', drive_service)
+    credentials = Credentials(
+        token=session['access_token'],
+        refresh_token=user.refresh_token,
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=OAUTH_CLIENT_ID,
+        client_secret=OAUTH_CLIENT_SECRET
+    )
+    drive_service = build('drive', 'v3', credentials=credentials)
     
     # 폴더 이름
     folder_name = 'HeyVoca'
 
-    # # 폴더가 존재하는지 확인
-    # query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-    # results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    # folders = results.get('files', [])
-
-    folders = None
-    # 폴더 존재 확인 로깅
+    # 폴더가 존재하는지 확인
     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-    try:
-        results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-        folders = results.get('files', [])
-        print(f"폴더 조회 결과: {folders}")
-    except Exception as e:
-        print("폴더 조회 중 오류 발생:", e)
-        return jsonify({"code": 500, "msg": "Google Drive 폴더 조회 실패"})
-    print('#### 지나옴')
-
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    folders = results.get('files', [])
 
     if not folders:
         # 폴더가 없으면 생성
@@ -215,25 +195,6 @@ def backup():
         # 폴더가 있으면 그 폴더 ID 사용
         folder_id = folders[0].get('id')
 
-    # 엑셀 파일 생성
-    # output = io.BytesIO()
-    # writer = pd.ExcelWriter(output, engine='xlsxwriter')
-
-    # for notebook in data:
-    #         # DataFrame 생성
-    #         df = pd.DataFrame(notebook['words'], columns=['word', 'meaning', 'example'])
-
-    #         # 'meaning' 열의 리스트를 쉼표로 구분된 문자열로 변환
-    #         df['meaning'] = df['meaning'].apply(lambda x: ', '.join(x) if isinstance(x, list) else x)
-
-    #         # 'example' 열도 필요한 경우 같은 방식으로 처리
-    #         df['example'] = df['example'].apply(lambda x: '|\n'.join(x) if isinstance(x, list) else x)
-
-    #         # DataFrame을 엑셀 시트에 저장
-    #         df.to_excel(writer, sheet_name=notebook['name'], index=False)
-
-    # writer.close()
-    # output.seek(0)
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for notebook in data:
@@ -262,18 +223,120 @@ def backup():
                 pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
 
     output.seek(0)
-    print('#### 3333')
+    
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
         'name': 'heyvoca_backup.xlsx',
         'parents': [folder_id]  # 파일을 업로드할 폴더 지정
     }
-    print('#### 4444')
+    
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    print('#### 5555')
+    
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    print('#### 6666')
+    
     return jsonify({"code": 200})
+
+
+@drive_bp.route('/backup/app', methods=['POST'])
+@login_required
+def backup_app():
+    data = request.json
+    notebooks = data['notebooks']
+    access_token = data['access_token']
+    folder_name = 'HeyVoca'  # 생성할 폴더 이름
+    filename = 'heyvoca_backup.xlsx'  # 저장할 엑셀 파일 이름
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    # Step 1: 폴더가 존재하는지 확인
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    response = requests.get(
+        'https://www.googleapis.com/drive/v3/files',
+        headers=headers,
+        params={'q': query, 'fields': 'files(id, name)'}
+    )
+    
+    if response.status_code == 200:
+        folders = response.json().get('files', [])
+        
+        if not folders:
+            # Step 2: 폴더가 없으면 새 폴더 생성
+            folder_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder'
+            }
+            folder_response = requests.post(
+                'https://www.googleapis.com/drive/v3/files',
+                headers=headers,
+                json=folder_metadata
+            )
+            
+            if folder_response.status_code == 200:
+                folder_id = folder_response.json().get('id')
+                print(f"폴더 생성됨: {folder_name} (ID: {folder_id})")
+            else:
+                return jsonify({'error': 'Failed to create folder', 'details': folder_response.json()}), folder_response.status_code
+        else:
+            # 폴더가 이미 있는 경우 해당 폴더 ID 사용
+            folder_id = folders[0].get('id')
+            print(f"기존 폴더 사용: {folder_name} (ID: {folder_id})")
+    else:
+        return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
+
+    # Step 2.1: 엑셀 파일 생성
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        for notebook in notebooks:
+            sheet_name = notebook['name']
+            words = notebook['words']
+
+            # 노트북의 메타데이터를 DataFrame으로 저장
+            metadata = pd.DataFrame([{
+                "name": notebook['name'],
+                "color_main": notebook['color']['main'],
+                "color_background": notebook['color']['background'],
+                "createdAt": notebook['createdAt'],
+                "updatedAt": notebook['updatedAt'],
+                "status": notebook['status'],
+                "id": notebook['id']
+            }])
+
+            # 메타데이터를 시트에 먼저 저장
+            metadata.to_excel(writer, sheet_name=sheet_name, index=False, startrow=0)
+
+            # 단어 데이터 추가
+            if words:
+                df_words = pd.DataFrame(words)
+                df_words.to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
+            else:
+                pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
+
+    output.seek(0)
+
+    # Step 3: Google Drive에 엑셀 파일 업로드
+    file_metadata = {
+        'name': filename,
+        'parents': [folder_id],  # 파일을 업로드할 폴더 지정
+        'mimeType': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    }
+    
+    media = {
+        'metadata': ('metadata', json.dumps(file_metadata), 'application/json'),
+        'file': ('file', output, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    }
+    
+    upload_response = requests.post(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        headers=headers,
+        files=media
+    )
+
+    if upload_response.status_code == 200:
+        return jsonify({'code' : 200, 'msg': '파일이 성공적으로 업로드되었습니다.'})
+    else:
+        return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
 
 
 @drive_bp.route('/excel_to_json', methods=['GET'])
