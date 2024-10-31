@@ -189,10 +189,11 @@ def backup():
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
         print('#### android')
-        credentials = Credentials(
-            token=session['access_token'],
-            force_refresh=False
-        )
+        credentials = Credentials(token=session['access_token'])
+
+        # 토큰 갱신 방지
+        request = Request()
+        credentials.refresh = lambda _: None  # 갱신 메서드를 비활성화
         drive_service = build('drive', 'v3', credentials=credentials)
     
     
