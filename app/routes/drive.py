@@ -167,6 +167,7 @@ def backup():
     drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
     if session['os'] == 'web' :
+        print('#### web')
         credentials = Credentials(
             token=session['access_token'],
             refresh_token=user.refresh_token,
