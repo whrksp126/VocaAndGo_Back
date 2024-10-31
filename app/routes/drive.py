@@ -1,14 +1,11 @@
-from flask import render_template, redirect, url_for, request, session, jsonify
+from flask import render_template, redirect, url_for, request, session, jsonify, send_file
 from app import db
 from app.routes import drive_bp
 from app.models.models import User
-
-
 from flask_login import current_user, login_required, login_user, logout_user
 import json
 from werkzeug.security import generate_password_hash, check_password_hash
-
-import io
+from io import BytesIO
 import json
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -18,14 +15,8 @@ from google.auth.transport.requests import Request
 from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
-from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI, OAUTH_ANDROID_PRODUCTION_CLIENT_ID, OAUTH_ANDROID_PLAY_STORE_CLIENT_ID
-
-
-###### 엑셀 테스트 ######
-
-from flask import send_file
 import pandas as pd
-from io import BytesIO
+from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI, OAUTH_ANDROID_PRODUCTION_CLIENT_ID, OAUTH_ANDROID_PLAY_STORE_CLIENT_ID
 
 # 더미 데이터
 data = [
@@ -166,9 +157,6 @@ def download_excel():
 
 
 ## 드라이브에 엑셀 파일로 저장 TODO : word->origin
-from flask import send_file
-import pandas as pd
-from io import BytesIO
 @drive_bp.route('/backup', methods=['POST'])
 @login_required
 def backup():
