@@ -196,10 +196,25 @@ def backup():
     folder_name = 'HeyVoca'
     print('#### 0000')
 
-    # 폴더가 존재하는지 확인
+    # # 폴더가 존재하는지 확인
+    # query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    # results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    # folders = results.get('files', [])
+
+    # Drive 서비스 객체 확인
+    if not drive_service:
+        print('#### not drive_service')
+        return jsonify({"code": 500, "msg": "Drive service 생성 실패"})
+
+    # 폴더 존재 확인 로깅
     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    folders = results.get('files', [])
+    try:
+        results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+        folders = results.get('files', [])
+        print(f"폴더 조회 결과: {folders}")
+    except Exception as e:
+        print("폴더 조회 중 오류 발생:", e)
+        return jsonify({"code": 500, "msg": "Google Drive 폴더 조회 실패"})
     print('#### 1111')
     if not folders:
         # 폴더가 없으면 생성
