@@ -178,6 +178,7 @@ def backup():
     drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
     if session['os'] == 'web' :
+        print('#### web')
         credentials = Credentials(
             token=session['access_token'],
             refresh_token=user.refresh_token,
@@ -187,6 +188,7 @@ def backup():
         )
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
+        print('#### android')
         credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
     # 폴더 이름
