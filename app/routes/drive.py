@@ -180,7 +180,7 @@ def backup():
         print('#### android')
         credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
-    
+    print('#### drive_service', drive_service)
     
     # 폴더 이름
     folder_name = 'HeyVoca'
