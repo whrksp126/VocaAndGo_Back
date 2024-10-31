@@ -179,7 +179,6 @@ def backup():
     drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
     if session['os'] == 'web' :
-        print('#### web')
         credentials = Credentials(
             token=session['access_token'],
             refresh_token=user.refresh_token,
@@ -189,18 +188,19 @@ def backup():
         )
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
-        print('#### android', session['access_token'])
         credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
-    print('#### 넘어옴')
+    
+    
     # 폴더 이름
     folder_name = 'HeyVoca'
-    
+    print('#### 0000')
+
     # 폴더가 존재하는지 확인
     query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
     results = drive_service.files().list(q=query, fields="files(id, name)").execute()
     folders = results.get('files', [])
-
+    print('#### 1111')
     if not folders:
         # 폴더가 없으면 생성
         file_metadata = {
@@ -212,6 +212,7 @@ def backup():
     else:
         # 폴더가 있으면 그 폴더 ID 사용
         folder_id = folders[0].get('id')
+    print('#### 2222')
 
     # 엑셀 파일 생성
     # output = io.BytesIO()
@@ -260,15 +261,17 @@ def backup():
                 pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
 
     output.seek(0)
-
+    print('#### 3333')
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
         'name': 'heyvoca_backup.xlsx',
         'parents': [folder_id]  # 파일을 업로드할 폴더 지정
     }
+    print('#### 4444')
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    print('#### 5555')
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-
+    print('#### 6666')
     return jsonify({"code": 200})
 
 
