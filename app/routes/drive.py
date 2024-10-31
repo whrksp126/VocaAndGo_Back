@@ -14,6 +14,7 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBaseDownload
 from google.auth.transport.requests import Request
+
 from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
@@ -188,9 +189,10 @@ def backup():
         )
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
-        print('#### android')
+        print('#### android', session['access_token'])
         credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
+    print('#### 넘어옴')
     # 폴더 이름
     folder_name = 'HeyVoca'
     
