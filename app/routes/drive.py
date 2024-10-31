@@ -187,18 +187,7 @@ def backup():
         )
         drive_service = build('drive', 'v3', credentials=credentials)
     elif session['os'] == 'android':
-        # client_secret 없이 Credentials 생성
-        credentials = Credentials(
-            token=session['access_token'],  # 저장된 access_token
-            refresh_token=user.refresh_token,  # 저장된 refresh_token
-            token_uri='https://oauth2.googleapis.com/token',
-            client_id=OAUTH_ANDROID_PRODUCTION_CLIENT_ID  # Android 클라이언트 ID
-        )
-        # access_token 갱신 필요 시 refresh() 호출
-        if not credentials.valid or credentials.expired:
-            credentials.refresh(Request())  # refresh_token을 사용해 갱신
-
-        # 갱신된 credentials로 Google Drive API 클라이언트 생성
+        credentials = Credentials(token=session['access_token'])
         drive_service = build('drive', 'v3', credentials=credentials)
     # 폴더 이름
     folder_name = 'HeyVoca'
