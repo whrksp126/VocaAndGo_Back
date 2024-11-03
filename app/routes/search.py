@@ -90,40 +90,45 @@ def search_word_en():
                 .limit(10)
                 .subquery())
 
-    # 메인 쿼리 : word, meaning, example 조인해서 서브 쿼리에 포함된 word id의 데이터만 검색 
-    results = (db.session.query(Voca, VocaMeaning, VocaExample)
-               .outerjoin(VocaMeaningMap, Voca.id == VocaMeaningMap.voca_id)
-               .outerjoin(VocaMeaning, VocaMeaningMap.meaning_id == VocaMeaning.id)
-               .outerjoin(VocaExampleMap, Voca.id == VocaExampleMap.voca_id)
-               .outerjoin(VocaExample, VocaExampleMap.example_id == VocaExample.id)
-               .filter(Voca.id.in_(subquery))
-               .all())
-    
+    # 단어와 발음 가져오기
+    words = db.session.query(Voca).filter(Voca.id.in_(subquery)).all()
+
+    # 뜻 가져오기
+    meanings = (db.session.query(VocaMeaningMap.voca_id, VocaMeaning.meaning)
+                .join(VocaMeaning, VocaMeaningMap.meaning_id == VocaMeaning.id)
+                .filter(VocaMeaningMap.voca_id.in_(subquery))
+                .all())
+
+    # 예문 가져오기
+    examples = (db.session.query(VocaExampleMap.voca_id, VocaExample.id, VocaExample.exam_en, VocaExample.exam_ko)
+                .join(VocaExample, VocaExampleMap.example_id == VocaExample.id)
+                .filter(VocaExampleMap.voca_id.in_(subquery))
+                .all())
+
     # 단어별로 뜻과 예문을 매핑하여 결과 생성
-    data = [] # 최종 데이터 담는 리스트
-    word_meaning_map = {}
-    for word, meaning, example in results:
-        # 단어 및 뜻 데이터 처리
-        if word.id not in word_meaning_map:
-            word_meaning_map[word.id] = {
-                'word': word.word,
-                'pronunciation': word.pronunciation,
-                'examples': [],
-                'meanings': []
-            }
-        
-        # 뜻 추가
-        if meaning:
-            word_meaning_map[word.id]['meanings'].append(meaning.meaning)
-        
-        # 예문 추가
-        if example:
-            word_meaning_map[word.id]['examples'].append({"id": example.id, "exam_en": example.exam_en, "exam_ko": example.exam_ko})
+    data = []  # 최종 데이터 담는 리스트
+    word_map = {word.id: {
+        'word': word.word,
+        'pronunciation': word.pronunciation,
+        'meanings': [],
+        'examples': []
+    } for word in words}
 
-    for word_data in word_meaning_map.values():
-        data.append(word_data)
+    # 뜻 추가
+    for voca_id, meaning in meanings:
+        if meaning not in word_map[voca_id]['meanings']:
+            word_map[voca_id]['meanings'].append(meaning)
 
-    return jsonify({'code': 200, 'data' : data}), 200
+    # 예문 추가
+    for voca_id, example_id, exam_en, exam_ko in examples:
+        example_data = {"id": example_id, "exam_en": exam_en, "exam_ko": exam_ko}
+        if example_data not in word_map[voca_id]['examples']:
+            word_map[voca_id]['examples'].append(example_data)
+
+    # 최종 데이터 리스트 생성
+    data = list(word_map.values())
+
+    return jsonify({'code': 200, 'data': data}), 200
 
 
 ## 한글(뜻) 부분 검색
