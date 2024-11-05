@@ -373,11 +373,14 @@ def excel_to_json():
     
     return jsonify({"code":200, "data": restored_data})
 
+
 @drive_bp.route('/excel_to_json/app', methods=['GET'])
 @login_required
 def excel_to_json_app():
-    data = request.json
-    access_token = data['access_token']
+    access_token = request.args.get('access_token')  # 쿼리 파라미터로 access_token 가져오기
+    if not access_token:
+        return jsonify({"code": 400, "msg": "액세스 토큰이 필요합니다"}), 400
+
     folder_name = 'HeyVoca'
     file_name = 'heyvoca_backup.xlsx'
 
@@ -394,7 +397,7 @@ def excel_to_json_app():
     )
     
     if response.status_code != 200:
-        return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
+        return jsonify({'error': '폴더 존재를 확인하지 못했습니다.', 'details': response.json()}), response.status_code
     
     folders = response.json().get('files', [])
     if not folders:
@@ -411,7 +414,7 @@ def excel_to_json_app():
     )
 
     if response.status_code != 200:
-        return jsonify({'error': 'Failed to check file existence', 'details': response.json()}), response.status_code
+        return jsonify({'error': '파일 존재를 확인하지 못했습니다.', 'details': response.json()}), response.status_code
     
     files = response.json().get('files', [])
     if not files:
@@ -424,7 +427,7 @@ def excel_to_json_app():
     response = requests.get(download_url, headers=headers, stream=True)
 
     if response.status_code != 200:
-        return jsonify({'error': 'Failed to download file', 'details': response.json()}), response.status_code
+        return jsonify({'error': '파일을 다운로드하지 못했습니다.', 'details': response.json()}), response.status_code
 
     # Step 4: 엑셀 파일을 JSON으로 변환
     output = BytesIO(response.content)
