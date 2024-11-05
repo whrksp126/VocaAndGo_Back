@@ -454,7 +454,7 @@ def convert_excel_to_json(fh):
                     try:
                         print("파싱하기 전:", word['example'])
                         print("구문 분석하기 전에 입력하세요.:", type(word['example']))
-                        formatted_example = f'"{word["example"]}"'
+                        formatted_example = word['example'].replace("'", '"')
                         word['example'] = json.loads(formatted_example)
 
                         print("파싱 ​​후:", word['example'])
