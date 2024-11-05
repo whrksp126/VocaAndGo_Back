@@ -452,20 +452,14 @@ def convert_excel_to_json(fh):
             for word in words:
                 if 'example' in word and isinstance(word['example'], str):
                     try:
-                        print("파싱하기 전:", word['example'])
-                        print("구문 분석하기 전에 입력하세요.:", type(word['example']))
                         formatted_example = word['example'].replace("'", '"')
                         word['example'] = json.loads(formatted_example)
-
-                        print("파싱 ​​후:", word['example'])
-                        print("구문 분석 후 입력:", type(word['example']))
-                        
                     except json.JSONDecodeError:
                         word['example'] = [word['example']] 
 
                 if 'meaning' in word and isinstance(word['meaning'], str):
                     try:
-                        formatted_meaning = f'"{word["meaning"]}"'
+                        formatted_meaning = word['meaning'].replace("'", '"')
                         word['meaning'] = json.loads(formatted_meaning)
                     except json.JSONDecodeError:
                         word['meaning'] = [word['meaning']]
