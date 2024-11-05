@@ -342,38 +342,20 @@ def backup_app():
 @drive_bp.route('/excel_to_json', methods=['GET'])
 @login_required
 def excel_to_json():
-    # token에서 Credentials 객체 생성
-    token = session['token']
-    credentials = Credentials(
-        token=token['access_token'],
-        refresh_token=token.get('refresh_token'),
-        token_uri='https://oauth2.googleapis.com/token',
-        client_id=OAUTH_CLIENT_ID,
-        client_secret=OAUTH_CLIENT_SECRET
-    )
-
-    drive_service = build('drive', 'v3', credentials=credentials)
+    # Google Drive 서비스 객체 생성
+    drive_service = get_google_drive_service()
 
     # 'HeyVoca' 폴더 검색
     folder_name = 'HeyVoca'
-    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id)").execute()
-    folders = results.get('files', [])
-
-    if not folders:
+    folder_id = find_drive_folder(drive_service, folder_name)
+    if not folder_id:
         return jsonify({"code":404, "msg": "백업 폴더가 없습니다"})
 
-    folder_id = folders[0]['id']
-
-    # 폴더에서 'heyvoca_backup.xlsx' 파일 검색
-    query = f"'{folder_id}' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and name='heyvoca_backup.xlsx' and trashed=false"
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get('files', [])
-
-    if not files:
+    # 폴더 내 'heyvoca_backup.xlsx' 파일 검색
+    file_name = 'heyvoca_backup.xlsx'
+    file_id = find_drive_file(drive_service, folder_id, file_name)
+    if not file_id:
         return jsonify({"code":404, "msg": "백업 파일이 없습니다"})
-
-    file_id = files[0]['id']
 
     # 엑셀 파일 다운로드
     request = drive_service.files().get_media(fileId=file_id)
@@ -386,8 +368,77 @@ def excel_to_json():
 
     fh.seek(0)
 
-    # 엑셀 파일을 읽어 JSON으로 변환
+    # 파일을 JSON으로 변환
+    restored_data = convert_excel_to_json(fh)
+    
+    return jsonify({"code":200, "data": restored_data})
+
+@drive_bp.route('/excel_to_json/app', methods=['GET'])
+@login_required
+def excel_to_json_app():
+    data = request.json
+    access_token = data['access_token']
+    folder_name = 'HeyVoca'
+    file_name = 'heyvoca_backup.xlsx'
+
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+
+    # Step 1: 폴더가 존재하는지 확인
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    response = requests.get(
+        'https://www.googleapis.com/drive/v3/files',
+        headers=headers,
+        params={'q': query, 'fields': 'files(id, name)'}
+    )
+    
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
+    
+    folders = response.json().get('files', [])
+    if not folders:
+        return jsonify({"code": 404, "msg": "백업 폴더가 없습니다"})
+
+    folder_id = folders[0].get('id')
+
+    # Step 2: 폴더 내 'heyvoca_backup.xlsx' 파일 검색
+    query = f"'{folder_id}' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and name='{file_name}' and trashed=false"
+    response = requests.get(
+        'https://www.googleapis.com/drive/v3/files',
+        headers=headers,
+        params={'q': query, 'fields': 'files(id, name)'}
+    )
+
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to check file existence', 'details': response.json()}), response.status_code
+    
+    files = response.json().get('files', [])
+    if not files:
+        return jsonify({"code": 404, "msg": "백업 파일이 없습니다"})
+
+    file_id = files[0].get('id')
+
+    # Step 3: 엑셀 파일 다운로드
+    download_url = f'https://www.googleapis.com/drive/v3/files/{file_id}?alt=media'
+    response = requests.get(download_url, headers=headers, stream=True)
+
+    if response.status_code != 200:
+        return jsonify({'error': 'Failed to download file', 'details': response.json()}), response.status_code
+
+    # Step 4: 엑셀 파일을 JSON으로 변환
+    output = BytesIO(response.content)
+    restored_data = convert_excel_to_json(output)
+
+    return jsonify({"code": 200, "data": restored_data})
+
+
+
+
+# 엑셀 파일을 JSON 형식으로 변환하는 함수
+def convert_excel_to_json(fh):
     restored_data = []
+
     with pd.ExcelFile(fh) as xls:
         for sheet_name in xls.sheet_names:
             # 시트별로 데이터 읽기
@@ -396,18 +447,17 @@ def excel_to_json():
 
             # words 데이터 내 example과 meaning을 JSON으로 변환
             for word in words:
-                # example, meaning 필드가 JSON 문자열이라면 리스트로 변환
                 if 'example' in word and isinstance(word['example'], str):
                     try:
                         word['example'] = json.loads(word['example'])
                     except json.JSONDecodeError:
-                        word['example'] = [word['example']]  # JSON 파싱 실패 시 문자열 그대로 리스트에 넣음
+                        word['example'] = [word['example']]
 
                 if 'meaning' in word and isinstance(word['meaning'], str):
                     try:
                         word['meaning'] = json.loads(word['meaning'])
                     except json.JSONDecodeError:
-                        word['meaning'] = [word['meaning']]  # JSON 파싱 실패 시 문자열 그대로 리스트에 넣음
+                        word['meaning'] = [word['meaning']]
 
             # JSON 데이터 구조 복원
             notebook = {
@@ -420,10 +470,35 @@ def excel_to_json():
                 "updatedAt": metadata["updatedAt"],
                 "status": metadata["status"],
                 "id": metadata["id"],
-                "words": words  # words 데이터를 수정된 형태로 추가
+                "words": words
             }
 
             restored_data.append(notebook)
 
-    print("restore_data", restored_data)
-    return jsonify({"code":200, "data": restored_data})
+    return restored_data
+
+# 사용자 인증을 통해 Google Drive 서비스 객체를 생성
+def get_google_drive_service():
+    token = session['token']
+    credentials = Credentials(
+        token=token['access_token'],
+        refresh_token=token.get('refresh_token'),
+        token_uri='https://oauth2.googleapis.com/token',
+        client_id=OAUTH_CLIENT_ID,
+        client_secret=OAUTH_CLIENT_SECRET
+    )
+    return build('drive', 'v3', credentials=credentials)
+
+# Google Drive에서 폴더를 검색하고 ID 반환
+def find_drive_folder(drive_service, folder_name):
+    query = f"mimeType='application/vnd.google-apps.folder' and name='{folder_name}' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id)").execute()
+    folders = results.get('files', [])
+    return folders[0]['id'] if folders else None
+
+# Google Drive에서 파일을 검색하고 ID 반환
+def find_drive_file(drive_service, folder_id, file_name):
+    query = f"'{folder_id}' in parents and mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' and name='{file_name}' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    files = results.get('files', [])
+    return files[0]['id'] if files else None
