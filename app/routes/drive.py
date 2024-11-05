@@ -452,6 +452,8 @@ def convert_excel_to_json(fh):
             for word in words:
                 if 'example' in word and isinstance(word['example'], str):
                     try:
+                        print(word['example'])
+                        print(type(word['example']))
                         word['example'] = json.loads(word['example'])
                     except json.JSONDecodeError:
                         word['example'] = [word['example']]
