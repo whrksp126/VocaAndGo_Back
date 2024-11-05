@@ -482,10 +482,10 @@ def convert_excel_to_json(fh):
 
 # 사용자 인증을 통해 Google Drive 서비스 객체를 생성
 def get_google_drive_service():
-    token = session['token']
+    user = User.query.filter_by(google_id=session['user_id']).first()
     credentials = Credentials(
-        token=token['access_token'],
-        refresh_token=token.get('refresh_token'),
+        token=session['access_token'],
+        refresh_token=user.refresh_token,
         token_uri='https://oauth2.googleapis.com/token',
         client_id=OAUTH_CLIENT_ID,
         client_secret=OAUTH_CLIENT_SECRET
