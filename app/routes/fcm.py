@@ -88,26 +88,32 @@ def send_fcm(message):
 # 토큰 저장 API
 @fcm_bp.route('/save_token', methods=['POST'])
 def save_token():
-    token = request.json.get('token')
-    print("@#$@#$curr", current_user.id)
-
-    if not token:
+    fcm_token = request.json.get('fcm_token')
+    google_id = request.json.get('google_id')
+    
+    if not fcm_token:
         return jsonify({'code': 400, 'msg': "토큰이 없습니다"})
 
+    user = db.session.query(User).filter(User.google_id == google_id).first()
+    
+    if not user:
+        return jsonify({'code': 404, 'msg': "사용자를 찾을 수 없습니다"})
+
     token_item = db.session.query(UserHasToken)\
-                    .filter(UserHasToken.user_id == current_user.id)\
-                    .filter(UserHasToken.token == token)\
-                    .all()
-
+                    .filter(UserHasToken.user_id == user.id)\
+                    .filter(UserHasToken.token == fcm_token)\
+                    .first() 
+    
     if token_item is None:
-        item  = UserHasToken(
-            user_id = current_user.id,
-            token = token,
+        new_token_item = UserHasToken(
+            user_id=user.id,
+            token=fcm_token,
         )
-
-        db.session.add(item)
+        db.session.add(new_token_item)
         db.session.commit()
-
+        return jsonify({'code': 201, 'msg': "토큰이 성공적으로 저장되었습니다"})
+    
+    return jsonify({'code': 200, 'msg': "토큰이 이미 존재합니다"})
 
 
 # FCM API 키 (Firebase Console에서 확인 가능)
