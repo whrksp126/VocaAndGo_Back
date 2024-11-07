@@ -8,7 +8,7 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
-
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 db = SQLAlchemy()
