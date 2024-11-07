@@ -23,7 +23,7 @@ def create_app():
     app.config.from_object(Config)
     db.init_app(app)
     migrate.init_app(app, db)
-    login_manager.init_app(app)
+    # login_manager.init_app(app)
     # login_manager.login_view = "main_login.html"
     
     # # 모든 모델 클래스들을 한번에 import
