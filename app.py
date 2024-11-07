@@ -2,6 +2,7 @@ from app import create_app, db
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_cors import CORS
+from app.init import start_scheduler
 
 # login_manager = LoginManager()
 
@@ -12,4 +13,5 @@ migrate = Migrate(app, db)
 # CORS(app)
 
 if __name__ == '__main__':
+    start_scheduler()
     app.run(debug=True)
