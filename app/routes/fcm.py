@@ -15,6 +15,7 @@ import io
 import firebase_admin
 from firebase_admin import credentials, messaging
 from pyfcm import FCMNotification
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 @fcm_bp.route('/fcm_html')
@@ -161,3 +162,18 @@ def send_notification():
     except Exception as e:
         print("fcm failed : ", e)
         return json.dumps({"error": str(e)}), 500
+
+
+# APScheduler 설정
+def start_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(send_notification, 'interval', minutes=1)  # 1분마다 실행
+    scheduler.start()
+
+    # 종료 시 Scheduler를 적절히 종료
+    try:
+        # 계속 실행
+        while True:
+            pass
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
