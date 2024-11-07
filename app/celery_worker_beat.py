@@ -3,7 +3,6 @@ from celery.schedules import crontab, timedelta
 import logging
 import os
 
-from app.routes.fcm import send_notification
 
 # Celery 설정
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
