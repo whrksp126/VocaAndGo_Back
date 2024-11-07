@@ -49,8 +49,8 @@ def create_app():
     from app.models import models
     from app.login_manager import load_user, unauthorized_callback
     
-    with app.app_context():
-        db.create_all()    
+    # with app.app_context():
+    #     db.create_all()    
     from app.routes.login import login_bp
     from app.routes.search import search_bp
     from app.routes.tts import tts_bp
