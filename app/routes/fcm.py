@@ -149,8 +149,12 @@ def send_notification():
         # 모든 토큰에 푸시 알림 전송
         results = []
         for token in tokens:
-            result = send_push_notification(title, message, token.token)
-            results.append(result)
+            try:
+                result = send_push_notification(title, message, token.token)
+                results.append(result)
+            except Exception as e:
+                print(f"Error sending to token {token.token}: {e}")
+                results.append({"error": str(e), "token": token.token})
 
         print("fcm success!")
         return json.dumps({"results": results}), 200
