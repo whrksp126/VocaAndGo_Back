@@ -133,32 +133,32 @@ def send_push_notification(title, message, token):
     return result
 
 
-# 메시지 전송 API
-def send_notification():
-    # title = request.json.get('title')
-    # message = request.json.get('message')
-    title = '두번쨰... 메시지'
-    message = '잠온다'
+# # 메시지 전송 API
+# def send_notification():
+#     # title = request.json.get('title')
+#     # message = request.json.get('message')
+#     title = '두번쨰... 메시지'
+#     message = '잠온다'
 
-    try:
-        # # DB에서 저장된 토큰 조회
-        # cursor.execute("SELECT token FROM fcm_tokens")
-        # tokens = cursor.fetchall()
+#     try:
+#         # # DB에서 저장된 토큰 조회
+#         # cursor.execute("SELECT token FROM fcm_tokens")
+#         # tokens = cursor.fetchall()
 
-        tokens = db.session.query(UserHasToken).all()
+#         tokens = db.session.query(UserHasToken).all()
 
-        # 모든 토큰에 푸시 알림 전송
-        results = []
-        for token in tokens:
-            try:
-                result = send_push_notification(title, message, token.token)
-                results.append(result)
-            except Exception as e:
-                print(f"Error sending to token {token.token}: {e}")
-                results.append({"error": str(e), "token": token.token})
+#         # 모든 토큰에 푸시 알림 전송
+#         results = []
+#         for token in tokens:
+#             try:
+#                 result = send_push_notification(title, message, token.token)
+#                 results.append(result)
+#             except Exception as e:
+#                 print(f"Error sending to token {token.token}: {e}")
+#                 results.append({"error": str(e), "token": token.token})
 
-        print("fcm success!")
-        return json.dumps({"results": results}), 200
-    except Exception as e:
-        print("fcm failed : ", e)
-        return json.dumps({"error": str(e)}), 500
+#         print("fcm success!")
+#         return json.dumps({"results": results}), 200
+#     except Exception as e:
+#         print("fcm failed : ", e)
+#         return json.dumps({"error": str(e)}), 500
