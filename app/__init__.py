@@ -44,6 +44,10 @@ def create_app():
     migrate.init_app(app, db)
     # login_manager.init_app(app)
     # login_manager.login_view = "main_login.html"
+
+    # APScheduler 설정
+    start_scheduler()
+
     
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models
@@ -65,7 +69,4 @@ def create_app():
     app.register_blueprint(drive_bp)
     app.register_blueprint(mainpage_bp)
     
-    # APScheduler 설정
-    start_scheduler()
-
     return app
