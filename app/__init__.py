@@ -52,6 +52,7 @@ def create_app():
     return app
 
 def start_scheduler():
+    print("스케줄러 comming")
     scheduler = BackgroundScheduler()
     
     # send_notification 함수를 실행할 때만 fcm.py를 임포트
