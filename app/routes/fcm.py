@@ -137,8 +137,8 @@ def send_push_notification(title, message, token):
 def send_notification():
     # title = request.json.get('title')
     # message = request.json.get('message')
-    title = '팀이 꼭...(더보기)'
-    message = '팀이 꼭 이 메시지를 봤으면 좋겠다...'
+    title = '두번쨰... 메시지'
+    message = '잠온다'
 
     try:
         # # DB에서 저장된 토큰 조회
@@ -162,18 +162,3 @@ def send_notification():
     except Exception as e:
         print("fcm failed : ", e)
         return json.dumps({"error": str(e)}), 500
-
-
-# APScheduler 설정
-def start_scheduler():
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(send_notification, 'interval', minutes=1)  # 1분마다 실행
-    scheduler.start()
-
-    # 종료 시 Scheduler를 적절히 종료
-    try:
-        # 계속 실행
-        while True:
-            pass
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
