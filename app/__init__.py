@@ -18,23 +18,17 @@ login_manager = LoginManager()
 
 def start_scheduler():
     print("스케줄러 comming")
-    scheduler = BackgroundScheduler()
+    scheduler = BackgroundScheduler(daemon=True)
     
     # send_notification 함수를 실행할 때만 fcm.py를 임포트
     from app.routes.fcm import send_notification
     scheduler.add_job(send_notification, 'interval', minutes=1)  # 1분마다 실행
+    # scheduler.add_job(send_notification, 'cron', hour=22, minute=0) # 10시마다
     scheduler.start()
-
-    # 종료 시 Scheduler를 적절히 종료
-    try:
-        # 계속 실행
-        while True:
-            pass
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
 
 
 def create_app():
+    print("-----create_app-----")
     app = Flask(__name__, static_folder='static', static_url_path='')
     CORS(app, supports_credentials=True)
     # CORS(app)
@@ -45,8 +39,10 @@ def create_app():
     # login_manager.init_app(app)
     # login_manager.login_view = "main_login.html"
 
+    print("-----스케줄러 시작-----")
     # APScheduler 설정
     start_scheduler()
+    print("-----스케줄러 끝-----")
 
     
     # # 모든 모델 클래스들을 한번에 import
