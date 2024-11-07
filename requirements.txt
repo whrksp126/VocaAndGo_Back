@@ -5,6 +5,7 @@ alembic==1.10.4
 amqp==5.1.1
 anaconda==0.0.1.1
 anyio==3.7.0
+APScheduler==3.10.4
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
 asttokens==2.0.5
@@ -173,6 +174,7 @@ trio==0.22.0
 trio-websocket==0.9.2
 typing-extensions==4.5.0
 tzdata==2024.1
+tzlocal==5.2
 undetected-chromedriver==3.4.6
 uritemplate==4.1.1
 urllib3==1.26.12
