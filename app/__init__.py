@@ -15,6 +15,25 @@ db = SQLAlchemy()
 migrate = Migrate()     
 login_manager = LoginManager()
 
+
+def start_scheduler():
+    print("스케줄러 comming")
+    scheduler = BackgroundScheduler()
+    
+    # send_notification 함수를 실행할 때만 fcm.py를 임포트
+    from app.routes.fcm import send_notification
+    scheduler.add_job(send_notification, 'interval', minutes=1)  # 1분마다 실행
+    scheduler.start()
+
+    # 종료 시 Scheduler를 적절히 종료
+    try:
+        # 계속 실행
+        while True:
+            pass
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
+
+
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='')
     CORS(app, supports_credentials=True)
@@ -50,20 +69,3 @@ def create_app():
     start_scheduler()
 
     return app
-
-def start_scheduler():
-    print("스케줄러 comming")
-    scheduler = BackgroundScheduler()
-    
-    # send_notification 함수를 실행할 때만 fcm.py를 임포트
-    from app.routes.fcm import send_notification
-    scheduler.add_job(send_notification, 'interval', minutes=1)  # 1분마다 실행
-    scheduler.start()
-
-    # 종료 시 Scheduler를 적절히 종료
-    try:
-        # 계속 실행
-        while True:
-            pass
-    except (KeyboardInterrupt, SystemExit):
-        scheduler.shutdown()
