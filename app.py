@@ -73,6 +73,7 @@ def send_fcm_message():
 
 
 def create_scheduler():
+    print('!!!!!!!!!!!!!')
     scheduler = BackgroundScheduler()
     scheduler.add_job(send_fcm_message, IntervalTrigger(minutes=1))  # 매 1분마다 실행
     scheduler.start()
