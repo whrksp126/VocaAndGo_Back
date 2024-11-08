@@ -80,7 +80,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=51))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=54))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
