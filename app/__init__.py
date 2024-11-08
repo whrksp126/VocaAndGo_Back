@@ -47,7 +47,7 @@ def create_app():
     app.register_blueprint(mainpage_bp)
 
     # 애플리케이션 시작 시 스케줄러도 시작
-    from app.route.fcm import create_scheduler
+    from app.routes.fcm import create_scheduler
     scheduler = create_scheduler(app)
     
     return app
