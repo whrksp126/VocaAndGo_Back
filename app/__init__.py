@@ -51,7 +51,7 @@ def send_fcm_message(app):
                                     .first()
 
         # # 메시지 전송 API
-        title = 'HeyVoca 공부할 시간이야🐣 오늘의 문장🌱 \n' + 
+        title = 'HeyVoca 공부할 시간이야🐣 오늘의 문장🌱'
         message = daily_sentence.meaning + '\n' + daily_sentence.sentence
 
         try:
@@ -80,7 +80,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=49))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=51))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
