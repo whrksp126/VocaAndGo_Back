@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, text
 from flask_cors import CORS
 import json
-from datetime import datetime, timedelta
 
 db = SQLAlchemy()
 migrate = Migrate()     
