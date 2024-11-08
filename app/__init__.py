@@ -50,7 +50,7 @@ def send_push_notification(title, message, token):
     return result
 
 
-def send_fcm_message():
+def send_fcm_message(app):
     with app.app_context():  # Flask 애플리케이션 컨텍스트 내에서 실행
 
 
@@ -87,16 +87,15 @@ def send_fcm_message():
             return json.dumps({"error": str(e)}), 500
 
 
-def create_scheduler():
+def create_scheduler(app):
     print('@@@@@')
     scheduler = BackgroundScheduler()
-    scheduler.add_job(send_fcm_message, IntervalTrigger(minutes=1))  # 매 1분마다 실행
+    scheduler.add_job(lambda: send_fcm_message(app), IntervalTrigger(minutes=1))  # 매 1분마다 실행
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
 
-# 애플리케이션 시작 시 스케줄러도 시작
-scheduler = create_scheduler()
+
 
 
 def create_app():
@@ -135,5 +134,8 @@ def create_app():
     app.register_blueprint(fcm_bp)
     app.register_blueprint(drive_bp)
     app.register_blueprint(mainpage_bp)
+
+    # 애플리케이션 시작 시 스케줄러도 시작
+    scheduler = create_scheduler(app)
     
     return app
