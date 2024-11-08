@@ -135,37 +135,6 @@ def send_push_notification(title, message, token):
     return result
 
 
-# # 메시지 전송 API
-# def send_notification():
-#     # title = request.json.get('title')
-#     # message = request.json.get('message')
-#     title = '두번쨰... 메시지'
-#     message = '잠온다'
-
-#     try:
-#         # # DB에서 저장된 토큰 조회
-#         # cursor.execute("SELECT token FROM fcm_tokens")
-#         # tokens = cursor.fetchall()
-
-#         tokens = db.session.query(UserHasToken).all()
-
-#         # 모든 토큰에 푸시 알림 전송
-#         results = []
-#         for token in tokens:
-#             try:
-#                 result = send_push_notification(title, message, token.token)
-#                 results.append(result)
-#             except Exception as e:
-#                 print(f"Error sending to token {token.token}: {e}")
-#                 results.append({"error": str(e), "token": token.token})
-
-#         print("fcm success!")
-#         return json.dumps({"results": results}), 200
-#     except Exception as e:
-#         print("fcm failed : ", e)
-#         return json.dumps({"error": str(e)}), 500
-
-
 # FCM API 키 (Firebase Console에서 확인 가능)
 push_service = FCMNotification(service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
                                  project_id='vocaandgo')
@@ -193,14 +162,12 @@ def send_fcm_message(app):
                                     .filter(DailySentence.date == today_kst)\
                                     .first()
 
-        # # 메시지 전송 API
         title = '공부할 시간이야🐣 오늘의 문장🌱'
         message = daily_sentence.sentence + '\n' + daily_sentence.meaning
 
         try:
             tokens = db.session.query(UserHasToken).all()
 
-            # 모든 토큰에 푸시 알림 전송
             results = []
             for token in tokens:
                 try:
@@ -219,7 +186,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=54))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=5))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
