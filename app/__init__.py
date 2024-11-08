@@ -41,13 +41,17 @@ def send_push_notification(title, message, token):
 def send_fcm_message(app):
     with app.app_context():  # Flask 애플리케이션 컨텍스트 내에서 실행
 
-        from app.models.models import db, User, UserHasToken
+        from app.models.models import db, User, UserHasToken, DailySentence
 
-        # 여기에 FCM 메시지 전송 로직 작성
+        today_kst = (datetime.utcnow() + timedelta(hours=9)).date()
+
+        daily_sentence = db.session.query(DailySentence)\
+                                    .filter(date=today_kst)\
+                                    .first()
 
         # # 메시지 전송 API
-        title = 'TEST'
-        message = 'testtest'
+        title = '치열했다... 승자는... 없었다... 파국이다. '
+        message = daily_sentence.sentence
 
         try:
             # # DB에서 저장된 토큰 조회
@@ -75,7 +79,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=14, minute=0))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=0))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler

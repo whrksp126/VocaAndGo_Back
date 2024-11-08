@@ -2,7 +2,7 @@ from app import db
 
 from sqlalchemy import ForeignKey, Enum, UniqueConstraint, Index
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, Date, DateTime, Boolean, Text, BigInteger
+from sqlalchemy.types import String, Integer, Date, DateTime, Boolean, Text, BigInteger, Date
 
 from sqlalchemy.dialects.mysql import BINARY
 from sqlalchemy.types import TypeDecorator
@@ -179,6 +179,6 @@ class VocaExampleMap(db.Model):
 
 class DailySentence(db.Model):
     __tablename__ = 'daily_sentence'
-    date = Column(DateTime, nullable=False, primary_key=True)
+    date = Column(Date, nullable=False, primary_key=True)
     sentence = Column(String(200), nullable=False, primary_key=True)
     meaning = Column(String(200), nullable=False)
