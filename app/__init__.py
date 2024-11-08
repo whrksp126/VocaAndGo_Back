@@ -47,7 +47,7 @@ def send_fcm_message(app):
         today_kst = (datetime.utcnow() + timedelta(hours=9)).date()
 
         daily_sentence = db.session.query(DailySentence)\
-                                    .filter(DailySentence.date = today_kst)\
+                                    .filter(DailySentence.date == today_kst)\
                                     .first()
 
         # # 메시지 전송 API
