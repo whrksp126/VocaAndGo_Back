@@ -38,7 +38,7 @@ def send_push_notification(title, message, token):
 def send_fcm_message():
     with app.app_context():  # Flask 애플리케이션 컨텍스트 내에서 실행
 
-    
+
         from app.models.models import db, User, UserHasToken
 
         print("1시에 FCM 메시지를 전송합니다.")
@@ -74,7 +74,7 @@ def send_fcm_message():
 
 def create_scheduler():
     scheduler = BackgroundScheduler()
-    scheduler.add_job(send_fcm_message, CronTrigger(hour=1, minute=0))  # 매일 1시에 실행
+    scheduler.add_job(send_fcm_message, IntervalTrigger(minutes=1))  # 매 1분마다 실행
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
