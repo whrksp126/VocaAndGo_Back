@@ -28,6 +28,8 @@ login_manager = LoginManager()
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger  # IntervalTrigger 임포트 추가
+
 import atexit
 from pyfcm import FCMNotification
 
