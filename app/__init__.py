@@ -51,8 +51,8 @@ def send_fcm_message(app):
                                     .first()
 
         # # 메시지 전송 API
-        title = '치열했다... 승자는... 없었다... 파국이다. '
-        message = daily_sentence.sentence
+        title = '오늘의 문장🌱 \n' + daily_sentence.sentence
+        message = daily_sentence.meaning
 
         try:
             # # DB에서 저장된 토큰 조회
@@ -80,7 +80,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=11))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=43))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
