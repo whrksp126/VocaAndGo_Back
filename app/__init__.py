@@ -10,6 +10,7 @@ from sqlalchemy import create_engine, text
 from flask_cors import CORS
 # from apscheduler.schedulers.background import BackgroundScheduler
 
+import json
 
 db = SQLAlchemy()
 migrate = Migrate()     
