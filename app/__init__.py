@@ -15,6 +15,7 @@ db = SQLAlchemy()
 migrate = Migrate()     
 login_manager = LoginManager()
 
+print("!@#!@#!@#!@#!@#!@#!@#!@#@!#!@")
 
 # def start_scheduler():
 #     print("스케줄러 comming")
