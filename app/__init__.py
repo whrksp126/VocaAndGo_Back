@@ -29,6 +29,7 @@ login_manager = LoginManager()
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
+from pyfcm import FCMNotification
 
 
 # FCM API 키 (Firebase Console에서 확인 가능)
