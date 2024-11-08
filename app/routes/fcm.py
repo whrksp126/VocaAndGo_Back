@@ -11,6 +11,7 @@ from gtts import gTTS
 import os
 import uuid
 import io
+from datetime import datetime, timedelta
 
 import firebase_admin
 from firebase_admin import credentials, messaging
@@ -186,7 +187,7 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=9))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=10))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
