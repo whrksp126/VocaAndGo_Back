@@ -16,6 +16,8 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 from pyfcm import FCMNotification
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+import atexit
 
 
 @fcm_bp.route('/fcm_html')
@@ -162,3 +164,62 @@ def send_push_notification(title, message, token):
 #     except Exception as e:
 #         print("fcm failed : ", e)
 #         return json.dumps({"error": str(e)}), 500
+
+
+# FCM API 키 (Firebase Console에서 확인 가능)
+push_service = FCMNotification(service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
+                                 project_id='vocaandgo')
+
+
+# FCM 메시지 전송 함수
+def send_push_notification(title, message, token):
+    result = push_service.notify(fcm_token=token, 
+                                notification_title=title, 
+                                notification_body=message, 
+                                notification_image=None
+                            )
+
+    return result
+
+
+def send_fcm_message(app):
+    with app.app_context():  # Flask 애플리케이션 컨텍스트 내에서 실행
+
+        from app.models.models import db, User, UserHasToken, DailySentence
+
+        today_kst = (datetime.utcnow() + timedelta(hours=9)).date()
+
+        daily_sentence = db.session.query(DailySentence)\
+                                    .filter(DailySentence.date == today_kst)\
+                                    .first()
+
+        # # 메시지 전송 API
+        title = '공부할 시간이야🐣 오늘의 문장🌱'
+        message = daily_sentence.sentence + '\n' + daily_sentence.meaning
+
+        try:
+            tokens = db.session.query(UserHasToken).all()
+
+            # 모든 토큰에 푸시 알림 전송
+            results = []
+            for token in tokens:
+                try:
+                    result = send_push_notification(title, message, token.token)
+                    results.append(result)
+                except Exception as e:
+                    print(f"Error sending to token {token.token}: {e}")
+                    results.append({"error": str(e), "token": token.token})
+
+            print("fcm success!")
+            return json.dumps({"results": results}), 200
+        except Exception as e:
+            print("fcm failed : ", e)
+            return json.dumps({"error": str(e)}), 500
+
+
+def create_scheduler(app):
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=15, minute=54))
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
+    return scheduler
