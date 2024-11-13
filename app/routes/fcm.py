@@ -191,6 +191,10 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
+    
+    # 중복 스케줄 방지용으로 기존 작업 제거
+    scheduler.remove_all_jobs()
+
     scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
     # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
     scheduler.start()
