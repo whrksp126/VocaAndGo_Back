@@ -203,8 +203,8 @@ def create_scheduler(app):
 
         scheduler = BackgroundScheduler()
 
-        # 1분마다 실행하는 Job 추가
-        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))
+        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="10"))
+        # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
         
         scheduler.start()
         atexit.register(lambda: scheduler.shutdown())
