@@ -196,14 +196,17 @@ def create_scheduler(app):
     lock = FileLock(lock_file)
     
     with lock:
-        if not app.config.get("SCHEDULER_RUNNING", False):
-            app.config["SCHEDULER_RUNNING"] = True
-            scheduler = BackgroundScheduler()
-            
-            scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
-            # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
-            scheduler.start()
-            atexit.register(lambda: scheduler.shutdown())
-            app.config["scheduler"] = scheduler
-        else:
-            print("Scheduler is already running")
+        if "scheduler" in app.config and app.config["scheduler"].running:
+            print("Existing scheduler found, stopping it to prevent duplicates.")
+            app.config["scheduler"].shutdown()
+            app.config["scheduler"] = None
+
+        scheduler = BackgroundScheduler()
+
+        # 1분마다 실행하는 Job 추가
+        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))
+        
+        scheduler.start()
+        atexit.register(lambda: scheduler.shutdown())
+        app.config["scheduler"] = scheduler  # 스케줄러 인스턴스 저장
+        print("Scheduler started!")  # 스케줄러가 처음 시작될 때 로그 추가
