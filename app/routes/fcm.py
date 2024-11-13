@@ -171,7 +171,7 @@ def send_fcm_message(app):
         try:
             tokens = db.session.query(UserHasToken).all()
 
-            for i, token in enumurate(tokens):
+            for i, token in enumerate(tokens):
                 print("cnt", i)
                 try:
                     result = send_push_notification(title, message, token.token)                    
