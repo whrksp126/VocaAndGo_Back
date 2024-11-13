@@ -177,7 +177,7 @@ def send_fcm_message(app):
                     result = send_push_notification(title, message, token.token)                    
                 except Exception as e:
                     print(f"Error sending to token: {e}")
-                    if e == 'Token not registered':
+                    if str(e) == 'Token not registered':
                         db.session.delete(token)
                         db.session.commit()
                         print(f"Deleted invalid token: {token.token}")
