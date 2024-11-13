@@ -203,8 +203,8 @@ def create_scheduler(app):
 
         scheduler = BackgroundScheduler()
 
-        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="30"))
-        # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
+        # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="30"))
+        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
         
         scheduler.start()
         atexit.register(lambda: scheduler.shutdown())
