@@ -163,23 +163,28 @@ def send_fcm_message(app):
                                     .filter(DailySentence.date == today_kst)\
                                     .first()
 
-        title = '공부할 시간이야🐣 오늘의 문장🌱'
-        message = daily_sentence.sentence + '\n' + daily_sentence.meaning
+        # title = '공부할 시간이야🐣 오늘의 문장🌱'
+        # message = daily_sentence.sentence + '\n' + daily_sentence.meaning
+        title = '사람이 언제 죽는다 생각하나'
+        message = '심장이 총알에 뚫렸을 때···? ···아니.\n불치의 병에 걸렸을 때? ···아니.\n맹독 버섯 스프를 마셨을 때···? 아니야!!!\n···사람들에게서 잊혀졌을 때다···!!!\n내가 사라져도 내 꿈은 이루어진다.\n병든 국민들의 마음도 분명히 고쳐질 거야···!!!\n왜 우나, 도르돈.\n(도르돈: ···나라도···! 똑같을까···?)\n···낄낄. 이어받는 자가··· 있다면···.\n이제 곧 여기에 괴물이 올 거다.\n내 아들이니까 손대지 마라.\n(안심해라, 쵸파. 난··· 네 버섯으론 죽지 않아.)\n정말!!!! 좋은 인생이었다!!!!\n쿠레하: 잘가라, 돌팔이 의사.\n고맙다, 쵸파!'
 
         try:
             tokens = db.session.query(UserHasToken).all()
 
-            results = []
             for token in tokens:
                 try:
                     result = send_push_notification(title, message, token.token)
-                    results.append(result)
+                    
+                    if result.get('error') == 'InvalidRegistration' or result.get('error') == 'NotRegistered':
+                        db.session.delete(token)
+                        db.session.commit()
+                        print(f"Deleted invalid token: {token.token}")
+
                 except Exception as e:
                     print(f"Error sending to token {token.token}: {e}")
-                    results.append({"error": str(e), "token": token.token})
 
             print("fcm success!")
-            return json.dumps({"results": results}), 200
+            return jsonify({'code': 200, 'msg': 'fcm 성공'})
         except Exception as e:
             print("fcm failed : ", e)
             return json.dumps({"error": str(e)}), 500
@@ -187,7 +192,8 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
+    # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
