@@ -5,3 +5,4 @@ config.py
 .txt
 firebase_setting.js
 vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json
+scheduler.lock
