@@ -173,15 +173,13 @@ def send_fcm_message(app):
 
             for token in tokens:
                 try:
-                    result = send_push_notification(title, message, token.token)
-                    
+                    result = send_push_notification(title, message, token.token)                    
+                except Exception as e:
+                    print(f"Error sending to token {token.token}: {e}")
                     if result.get('error') == 'InvalidRegistration' or result.get('error') == 'NotRegistered':
                         db.session.delete(token)
                         db.session.commit()
                         print(f"Deleted invalid token: {token.token}")
-
-                except Exception as e:
-                    print(f"Error sending to token {token.token}: {e}")
 
             print("fcm success!")
             return jsonify({'code': 200, 'msg': 'fcm 성공'})
