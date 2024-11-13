@@ -165,8 +165,8 @@ def send_fcm_message(app):
 
         # title = '공부할 시간이야🐣 오늘의 문장🌱'
         # message = daily_sentence.sentence + '\n' + daily_sentence.meaning
-        title = '사람이 언제 죽는다 생각하나'
-        message = '심장이 총알에 뚫렸을 때···? ···아니.\n불치의 병에 걸렸을 때? ···아니.\n맹독 버섯 스프를 마셨을 때···? 아니야!!!\n···사람들에게서 잊혀졌을 때다···!!!'
+        title = '이젠 1번'
+        message = '1번'
 
         try:
             tokens = db.session.query(UserHasToken).all()
@@ -191,6 +191,10 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
+    
+    # 중복 스케줄 방지용으로 기존 작업 제거
+    scheduler.remove_all_jobs()
+
     scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
     # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
     scheduler.start()
