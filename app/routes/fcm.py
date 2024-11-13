@@ -191,12 +191,13 @@ def send_fcm_message(app):
 
 def create_scheduler(app):
     # 스케줄러가 이미 존재하는지 확인
-    if not app.config.get("SCHEDULER_RUNNING"):
-        scheduler = BackgroundScheduler()
-        
-        scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
-        # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
-        scheduler.start()
-        atexit.register(lambda: scheduler.shutdown())
-    else:
-        print("Scheduler is already running")
+    if os.environ.get('WORKER_ID', '0') == '0':  # 첫 번째 워커만 실행
+        if not app.config.get("SCHEDULER_RUNNING"):
+            scheduler = BackgroundScheduler()
+            
+            scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
+            # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
+            scheduler.start()
+            atexit.register(lambda: scheduler.shutdown())
+        else:
+            print("Scheduler is already running")
