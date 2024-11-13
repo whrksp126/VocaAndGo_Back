@@ -195,14 +195,16 @@ def create_scheduler(app):
     lock_file = os.path.join(app.root_path, "scheduler.lock")
     lock = FileLock(lock_file)
 
-    with lock:
-        if not app.config.get("SCHEDULER_RUNNING", False):
-            app.config["SCHEDULER_RUNNING"] = True
-            scheduler = BackgroundScheduler()
-            
-            scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
-            # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
-            scheduler.start()
-            atexit.register(lambda: scheduler.shutdown())
-        else:
-            print("Scheduler is already running")
+    if os.environ.get('WORKER_ID', '0') == '0':
+        print("@#$@#$worker_id", os.environ.get('WORKER_ID', 'Not Set'))
+        with lock:
+            if not app.config.get("SCHEDULER_RUNNING", False):
+                app.config["SCHEDULER_RUNNING"] = True
+                scheduler = BackgroundScheduler()
+                
+                scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="*"))       # 1분마다 실행
+                # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
+                scheduler.start()
+                atexit.register(lambda: scheduler.shutdown())
+            else:
+                print("Scheduler is already running")
