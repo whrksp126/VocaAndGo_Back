@@ -50,3 +50,6 @@ sudo tail -f /var/log/celery/beat.err.log
 sudo systemctl daemon-reload
 sudo systemctl enable celery-beat
 sudo systemctl start celery-beat
+
+sudo supervisorctl restart celery
+sudo supervisorctl restart celery-beat
