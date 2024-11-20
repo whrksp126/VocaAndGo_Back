@@ -16,7 +16,7 @@ from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
 import pandas as pd
-from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI, OAUTH_ANDROID_PRODUCTION_CLIENT_ID, OAUTH_ANDROID_PLAY_STORE_CLIENT_ID
+from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
 
 # 더미 데이터
 data = [

@@ -35,3 +35,18 @@ celery -A app.celery_worker_beat.celery worker --loglevel=info
 celery -A app.celery_worker_beat.celery beat --loglevel=info
 
 
+
+# 크론탭 수정
+crontab -e
+
+# 크론탭 에러 로그 확인
+sudo tail -f /var/log/celery/beat.err.log
+
+
+# supervisord 설정 파일
+/etc/supervisor/conf.d/celery-beat.conf
+
+# 리로드 및 재시작
+sudo systemctl daemon-reload
+sudo systemctl enable celery-beat
+sudo systemctl start celery-beat
