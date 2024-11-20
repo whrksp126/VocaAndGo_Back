@@ -39,7 +39,7 @@ celery -A app.celery_worker_beat.celery beat --loglevel=info
 # 크론탭 수정
 crontab -e
 
-# 크론탭 에러 로그 확인
+# 샐러리 에러 로그 확인
 sudo tail -f /var/log/celery/beat.err.log
 
 
