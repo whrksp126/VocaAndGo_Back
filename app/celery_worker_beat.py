@@ -43,8 +43,8 @@ def send_fcm_message():
 celery.conf.beat_schedule = {
     'send-fcm-every-10-seconds': {
         'task': 'app.celery_worker_beat.send_fcm_message',
-        'schedule': crontab(minute='*/1')
-        # 'schedule': crontab(hour=13, minute=0, day_of_week='*') # KST 22:00
+        # 'schedule': crontab(minute='*/1')
+        'schedule': crontab(hour=13, minute=0, day_of_week='*') # KST 22:00
     },
 }
 celery.conf.timezone = 'UTC'
