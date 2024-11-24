@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 def send_fcm_message():
     app = create_app()
     with app.app_context():
-        send_push_notification()     # fcm 함수 실행
+        send_fcm_message(app)     # fcm 함수 실행
 
 
 # Celery Beat 스케줄 설정
