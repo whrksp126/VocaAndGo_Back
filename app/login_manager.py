@@ -20,10 +20,11 @@
 #     return render_template('main_login.html')
 
 
-from app.models.models import db, User
 
 # 사용자 로드 함수
 def load_user(user_id):
+    from app.models.models import db, User
+    
     print("@#$load_user")
     user_item = db.session.query(User).filter(User.id == user_id).first()
     return user_item
