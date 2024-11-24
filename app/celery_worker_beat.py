@@ -4,7 +4,7 @@ import logging
 import os
 
 from app import create_app
-from app.routes.fcm import send_push_notification
+from app.routes.fcm import send_push_notification, send_fcm_message
 
 # Celery 설정
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 def send_fcm_message_task():
     app = create_app()
     with app.app_context():
-        send_fcm_message()     # fcm 함수 실행
+        send_fcm_message(app)     # fcm 함수 실행
 
 
 # Celery Beat 스케줄 설정
