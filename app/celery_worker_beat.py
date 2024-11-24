@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Celery 작업 정의
 @celery.task
-def send_fcm_message():
+def send_fcm_message_task():
     app = create_app()
     with app.app_context():
         send_fcm_message()     # fcm 함수 실행
@@ -42,7 +42,7 @@ def send_fcm_message():
 # Celery Beat 스케줄 설정
 celery.conf.beat_schedule = {
     'send-fcm-every-10-seconds': {
-        'task': 'app.celery_worker_beat.send_fcm_message',
+        'task': 'app.celery_worker_beat.send_fcm_message_task',
         'schedule': crontab(minute='*/1')
         # 'schedule': crontab(hour=13, minute=0, day_of_week='*') # KST 22:00
     },
