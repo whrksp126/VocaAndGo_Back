@@ -34,7 +34,7 @@ def create_app():
     
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models
-    from app.login_manager import load_user, unauthorized_callback
+    # from app.login_manager import load_user, unauthorized_callback
     
     from app.routes.login import login_bp
     from app.routes.search import search_bp
