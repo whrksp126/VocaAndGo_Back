@@ -10,6 +10,8 @@ from sqlalchemy import create_engine, text
 from flask_cors import CORS
 import json
 
+from app.login_manager import load_user, unauthorized_callback
+
 db = SQLAlchemy()
 migrate = Migrate()     
 login_manager = LoginManager()
@@ -26,6 +28,9 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     # login_manager.login_view = "main_login.html"
+
+    login_manager.user_loader(load_user)
+    login_manager.unauthorized_handler(unauthorized_callback)
     
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models

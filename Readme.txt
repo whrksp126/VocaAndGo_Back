@@ -46,6 +46,9 @@ sudo tail -f /var/log/celery/beat.err.log
 # supervisord 설정 파일
 /etc/supervisor/conf.d/celery-beat.conf
 
+sudo nano /etc/supervisor/conf.d/celery-beat.conf
+
+
 # 리로드 및 재시작
 sudo systemctl daemon-reload
 sudo systemctl enable celery-beat
