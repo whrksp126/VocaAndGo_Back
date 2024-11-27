@@ -170,26 +170,26 @@ def send_fcm_message(app):
         # title = '이젠 1번'
         # message = '1번'
 
-        # # 유효하지 않은 토큰 삭제
-        # try:
-        #     tokens = db.session.query(UserHasToken).all()
+        try:
+            tokens = db.session.query(UserHasToken).all()
 
-        #     for i, token in enumerate(tokens):
-        #         print("cnt", i)
-        #         try:
-        #             result = send_push_notification(title, message, token.token)                    
-        #         except Exception as e:
-        #             print(f"Error sending to token: {e}")
-        #             if str(e) == 'Token not registered':
-        #                 db.session.delete(token)
-        #                 db.session.commit()
-        #                 print(f"Deleted invalid token: {token.token}")
+            for i, token in enumerate(tokens):
+                print("cnt", i)
+                try:
+                    result = send_push_notification(title, message, token.token)                    
+                except Exception as e:
+                    print(f"Error sending to token: {e}")
+                    # 유효하지 않은 토큰 삭제
+                    # if str(e) == 'Token not registered':
+                    #     db.session.delete(token)
+                    #     db.session.commit()
+                    #     print(f"Deleted invalid token: {token.token}")
 
-        #     print("fcm success!")
-        #     return jsonify({'code': 200, 'msg': 'fcm 성공'})
-        # except Exception as e:
-        #     print("fcm failed : ", e)
-        #     return json.dumps({"error": str(e)}), 500
+            print("fcm success!")
+            return jsonify({'code': 200, 'msg': 'fcm 성공'})
+        except Exception as e:
+            print("fcm failed : ", e)
+            return json.dumps({"error": str(e)}), 500
 
 
 # def create_scheduler(app):
