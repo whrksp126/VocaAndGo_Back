@@ -37,7 +37,8 @@ celery -A app.celery_worker_beat.celery beat --loglevel=info
 # nohup 명령어 사용 nohup은 터미널이 닫혀도 프로세스가 계속 실행되도록 합니다. 명령어 뒤에 &를 붙이면 백그라운드에서 실행됩니다.
 nohup celery -A app.celery_worker_beat.celery worker --loglevel=info &
 nohup celery -A app.celery_worker_beat.celery beat --loglevel=info &
-
+# 로그 확인
+tail -f nohup.out
 
 
 # 크론탭 수정
