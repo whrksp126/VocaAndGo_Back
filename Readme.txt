@@ -34,4 +34,30 @@ celery -A app.celery_worker_beat.celery worker --loglevel=info
 # 샐러리 비트 실행
 celery -A app.celery_worker_beat.celery beat --loglevel=info
 
+# nohup 명령어 사용 nohup은 터미널이 닫혀도 프로세스가 계속 실행되도록 합니다. 명령어 뒤에 &를 붙이면 백그라운드에서 실행됩니다.
+nohup celery -A app.celery_worker_beat.celery worker --loglevel=info &
+nohup celery -A app.celery_worker_beat.celery beat --loglevel=info &
+# 로그 확인
+tail -f nohup.out
 
+
+# 크론탭 수정
+crontab -e
+
+# 샐러리 에러 로그 확인
+sudo tail -f /var/log/celery/beat.err.log
+
+
+# supervisord 설정 파일
+/etc/supervisor/conf.d/celery-beat.conf
+
+sudo nano /etc/supervisor/conf.d/celery-beat.conf
+
+
+# 리로드 및 재시작
+sudo systemctl daemon-reload
+sudo systemctl enable celery-beat
+sudo systemctl start celery-beat
+
+sudo supervisorctl restart celery
+sudo supervisorctl restart celery-beat

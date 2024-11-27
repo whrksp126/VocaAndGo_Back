@@ -10,6 +10,8 @@ from sqlalchemy import create_engine, text
 from flask_cors import CORS
 import json
 
+from app.login_manager import load_user, unauthorized_callback
+
 db = SQLAlchemy()
 migrate = Migrate()     
 login_manager = LoginManager()
@@ -26,10 +28,13 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     # login_manager.login_view = "main_login.html"
+
+    login_manager.user_loader(load_user)
+    login_manager.unauthorized_handler(unauthorized_callback)
     
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models
-    from app.login_manager import load_user, unauthorized_callback
+    # from app.login_manager import load_user, unauthorized_callback
     
     from app.routes.login import login_bp
     from app.routes.search import search_bp
@@ -45,8 +50,8 @@ def create_app():
     app.register_blueprint(drive_bp)
     app.register_blueprint(mainpage_bp)
 
-    # 애플리케이션 시작 시 스케줄러도 시작
-    from app.routes.fcm import create_scheduler
-    scheduler = create_scheduler(app)
+    # # 애플리케이션 시작 시 스케줄러도 시작
+    # from app.routes.fcm import create_scheduler
+    # scheduler = create_scheduler(app)
     
     return app
