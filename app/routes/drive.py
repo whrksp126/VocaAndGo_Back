@@ -164,6 +164,7 @@ def backup():
     data = request.get_json()
     if not data:
         return jsonify({"code":400, "msg": "제공된 데이터가 없습니다"})
+    
     drive_service = None
     user = User.query.filter_by(google_id=session['user_id']).first()
     credentials = Credentials(
@@ -195,6 +196,17 @@ def backup():
         # 폴더가 있으면 그 폴더 ID 사용
         folder_id = folders[0].get('id')
 
+    # 동일한 파일명이 있는지 확인
+    backup_file_name = 'heyvoca_backup.xlsx'
+    query = f"'{folder_id}' in parents and name='{backup_file_name}' and trashed=false"
+    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+    existing_files = results.get('files', [])
+
+    # 동일한 파일명이 있다면 삭제
+    for file in existing_files:
+        drive_service.files().delete(fileId=file['id']).execute()
+
+    # 새로운 파일 생성 준비
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for notebook in data:
@@ -223,18 +235,18 @@ def backup():
                 pd.DataFrame().to_excel(writer, sheet_name=sheet_name, index=False, startrow=len(metadata) + 2)
 
     output.seek(0)
-    
+
     # Google Drive에 엑셀 파일 업로드
     file_metadata = {
-        'name': 'heyvoca_backup.xlsx',
+        'name': backup_file_name,
         'parents': [folder_id]  # 파일을 업로드할 폴더 지정
     }
-    
+
     media = MediaIoBaseUpload(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    
+
     file = drive_service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    
-    return jsonify({"code": 200})
+
+    return jsonify({"code": 200, "file_id": file.get('id')})
 
 
 @drive_bp.route('/backup/app', methods=['POST'])
@@ -285,7 +297,29 @@ def backup_app():
     else:
         return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
 
-    # Step 2.1: 엑셀 파일 생성
+    # Step 2.1: 동일한 파일명이 있으면 삭제
+    query = f"'{folder_id}' in parents and name='{filename}' and trashed=false"
+    file_check_response = requests.get(
+        'https://www.googleapis.com/drive/v3/files',
+        headers=headers,
+        params={'q': query, 'fields': 'files(id, name)'}
+    )
+    
+    if file_check_response.status_code == 200:
+        existing_files = file_check_response.json().get('files', [])
+        for file in existing_files:
+            delete_response = requests.delete(
+                f"https://www.googleapis.com/drive/v3/files/{file['id']}",
+                headers=headers
+            )
+            if delete_response.status_code == 204:
+                print(f"기존 파일 삭제됨: {file['name']} (ID: {file['id']})")
+            else:
+                return jsonify({'error': 'Failed to delete existing file', 'details': delete_response.json()}), delete_response.status_code
+    else:
+        return jsonify({'error': 'Failed to check existing files', 'details': file_check_response.json()}), file_check_response.status_code
+
+    # Step 3: 엑셀 파일 생성
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for notebook in notebooks:
@@ -315,7 +349,7 @@ def backup_app():
 
     output.seek(0)
 
-    # Step 3: Google Drive에 엑셀 파일 업로드
+    # Step 4: Google Drive에 엑셀 파일 업로드
     file_metadata = {
         'name': filename,
         'parents': [folder_id],  # 파일을 업로드할 폴더 지정
@@ -334,10 +368,9 @@ def backup_app():
     )
 
     if upload_response.status_code == 200:
-        return jsonify({'code' : 200, 'msg': '파일이 성공적으로 업로드되었습니다.'})
+        return jsonify({'code': 200, 'msg': '파일이 성공적으로 업로드되었습니다.'})
     else:
         return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
-
 
 @drive_bp.route('/excel_to_json', methods=['GET'])
 @login_required
