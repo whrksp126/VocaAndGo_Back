@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/var/www/vocaandgo')
+
 from celery import Celery
 from celery.schedules import crontab, timedelta
 import logging
