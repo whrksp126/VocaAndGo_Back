@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, request, session, jsonify,
 from app import db
 from app.routes import fcm_bp
 from app.models.models import db, User, UserHasToken
-from config import FCM_API_KEY
+#from config import FCM_API_KEY
 
 from flask_login import current_user, login_required, login_user, logout_user
 
