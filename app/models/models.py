@@ -132,7 +132,6 @@ class Bookstore(db.Model):
     name = Column(String(100), nullable=False)
     downloads = Column(Integer, nullable=False)
     category = Column(String(50), nullable=False)
-    color = Column(String(255), nullable=True)
     hide = Column(String(1), nullable=False)
     book_id = Column(Integer, ForeignKey('voca_book.id'), nullable=False)
 
