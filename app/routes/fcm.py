@@ -184,31 +184,9 @@ def send_fcm_message(app):
             return json.dumps({"error": str(e)}), 500
 
 
-<<<<<<< HEAD
-# def create_scheduler(app):
-#     lock_file = os.path.join(app.root_path, "scheduler.lock")
-#     lock = FileLock(lock_file)
-    
-#     with lock:
-#         if "scheduler" in app.config and app.config["scheduler"].running:
-#             print("Existing scheduler found, stopping it to prevent duplicates.")
-#             app.config["scheduler"].shutdown()
-#             app.config["scheduler"] = None
-
-#         scheduler = BackgroundScheduler()
-
-#         # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="30"))
-#         scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
-        
-#         scheduler.start()
-#         atexit.register(lambda: scheduler.shutdown())
-#         app.config["scheduler"] = scheduler  # 스케줄러 인스턴스 저장
-#         print("Scheduler started!")  # 스케줄러가 처음 시작될 때 로그 추가
-=======
 def create_scheduler(app):
     scheduler = BackgroundScheduler()
     scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
->>>>>>> cbdd992109d60e2f3a92d56dc19c7d33eb68dae3
