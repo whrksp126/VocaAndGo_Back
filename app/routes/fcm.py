@@ -20,9 +20,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
 
-# from filelock import FileLock
-
-
 @fcm_bp.route('/fcm_html')
 def fcm_html():
     return render_template('fcm3.html')
