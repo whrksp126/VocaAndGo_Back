@@ -272,36 +272,37 @@ def search_bookstore_all():
                 "name": row.bookstore_name,
                 "downloads": row.downloads,
                 "category": row.category,
-                'color': row.color,
+                "color": row.color,
                 "hide": row.hide,
-                "words": {}
+                "words": []
             }
 
-        # 단어 정보 구성
-        if voca_id not in results[bookstore_id]["words"]:
-            results[bookstore_id]["words"][voca_id] = {
+        # 단어 정보가 이미 추가되었는지 확인
+        word_entry = next((word for word in results[bookstore_id]["words"] if word["id"] == voca_id), None)
+        if not word_entry:
+            word_entry = {
                 "id": voca_id,
                 "word": row.word,
                 "pronunciation": row.pronunciation,
                 "meaning": [],
                 "examples": []
             }
+            results[bookstore_id]["words"].append(word_entry)
 
         # 단어 뜻 추가
-        if row.meaning and row.meaning not in results[bookstore_id]["words"][voca_id]["meaning"]:
-            results[bookstore_id]["words"][voca_id]["meaning"].append(row.meaning)
+        if row.meaning and row.meaning not in word_entry["meaning"]:
+            word_entry["meaning"].append(row.meaning)
 
         # 단어 예문 추가
         if row.example_en and row.example_ko:
-            results[bookstore_id]["words"][voca_id]["examples"].append({
-                "origin": row.example_en,
-                "meaning": row.example_ko
-            })
+            example = {"origin": row.example_en, "meaning": row.example_ko}
+            if example not in word_entry["examples"]:
+                word_entry["examples"].append(example)
 
     # 결과를 리스트로 변환
     final_results = list(results.values())
     
-    return jsonify({'code': 200, 'data' : final_results}), 200
+    return jsonify({'code': 200, 'data': final_results}), 200
 
     '''
     # bookstore 테이블의 모든 데이터를 가져옴
@@ -365,3 +366,10 @@ def search_bookstore_all():
 
     return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
+# 서점 다운로드 수 증가
+@search_bp.route('/bookstore/download', methods=['GET'])
+def bookstor_download():
+    id = request.args.get('id')
+
+
+    return jsonify({'code': 200, 'data' : id}), 200
