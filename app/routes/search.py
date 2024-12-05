@@ -367,9 +367,27 @@ def search_bookstore_all():
     return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
 # 서점 다운로드 수 증가
-@search_bp.route('/bookstore/download', methods=['GET'])
-def bookstor_download():
-    id = request.args.get('id')
+@search_bp.route('/bookstore/download', methods=['POST'])
+def bookstore_download():
+    id = request.json.get('id')
 
+    if not id:
+        return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
+    
+    try:
+        # id에 해당하는 bookstore 검색
+        bookstore = db.session.query(Bookstore).filter_by(id=id).first()
 
-    return jsonify({'code': 200, 'data' : id}), 200
+        if not bookstore:
+            return jsonify({'code': 404, 'message': '해당하는 서점이 없습니다.'}), 404
+
+        # downloads 값 1 증가
+        bookstore.downloads = (bookstore.downloads or 0) + 1
+        print(bookstore.downloads)
+        db.session.commit()
+
+        return jsonify({'code': 200, 'data': {'id': id, 'downloads': bookstore.downloads}}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'code': 500, 'message': 'Internal Server Error'}), 500
