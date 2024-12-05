@@ -20,8 +20,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
 
-# from filelock import FileLock
-
 
 @fcm_bp.route('/fcm_html')
 def fcm_html():
@@ -167,47 +165,29 @@ def send_fcm_message(app):
 
         title = '공부할 시간이야🐣 오늘의 문장🌱'
         message = daily_sentence.sentence + '\n' + daily_sentence.meaning
-        # title = '이젠 1번'
-        # message = '1번'
 
         try:
             tokens = db.session.query(UserHasToken).all()
 
-            for i, token in enumerate(tokens):
-                print("cnt", i)
+            results = []
+            for token in tokens:
                 try:
-                    result = send_push_notification(title, message, token.token)                    
+                    result = send_push_notification(title, message, token.token)
+                    results.append(result)
                 except Exception as e:
-                    print(f"Error sending to token: {e}")
-                    # 유효하지 않은 토큰 삭제
-                    # if str(e) == 'Token not registered':
-                    #     db.session.delete(token)
-                    #     db.session.commit()
-                    #     print(f"Deleted invalid token: {token.token}")
+                    print(f"Error sending to token {token.token}: {e}")
+                    results.append({"error": str(e), "token": token.token})
 
             print("fcm success!")
-            return jsonify({'code': 200, 'msg': 'fcm 성공'})
+            return json.dumps({"results": results}), 200
         except Exception as e:
             print("fcm failed : ", e)
             return json.dumps({"error": str(e)}), 500
 
 
-# def create_scheduler(app):
-#     lock_file = os.path.join(app.root_path, "scheduler.lock")
-#     lock = FileLock(lock_file)
-    
-#     with lock:
-#         if "scheduler" in app.config and app.config["scheduler"].running:
-#             print("Existing scheduler found, stopping it to prevent duplicates.")
-#             app.config["scheduler"].shutdown()
-#             app.config["scheduler"] = None
-
-#         scheduler = BackgroundScheduler()
-
-#         # scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(minute="30"))
-#         scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
-        
-#         scheduler.start()
-#         atexit.register(lambda: scheduler.shutdown())
-#         app.config["scheduler"] = scheduler  # 스케줄러 인스턴스 저장
-#         print("Scheduler started!")  # 스케줄러가 처음 시작될 때 로그 추가
+def create_scheduler(app):
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(lambda: send_fcm_message(app), CronTrigger(hour=16, minute=15))
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
+    return scheduler
