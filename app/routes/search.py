@@ -242,7 +242,7 @@ def get_unicode_range_for_initial(char):
 def search_bookstore_all():
     query = text("""
         SELECT 
-            bs.id AS bookstore_id, bs.name AS bookstore_name, bs.downloads, bs.category, bs.hide,
+            bs.id AS bookstore_id, bs.name AS bookstore_name, bs.downloads, bs.category, bs.color, bs.hide,
             vb.id AS voca_book_id,
             v.id AS voca_id, v.word, v.pronunciation,
             vm.meaning AS meaning,
@@ -272,6 +272,7 @@ def search_bookstore_all():
                 "name": row.bookstore_name,
                 "downloads": row.downloads,
                 "category": row.category,
+                'color': row.color,
                 "hide": row.hide,
                 "words": {}
             }
