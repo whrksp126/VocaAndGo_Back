@@ -168,7 +168,10 @@ def send_fcm_message(app):
         message = daily_sentence.sentence + '\n' + daily_sentence.meaning
 
         try:
-            tokens = db.session.query(UserHasToken).all()
+            tokens = db.session.query(UserHasToken)\
+                                .join(User, User.id == UserHasToken.user_id)\
+                                .filter(User.is_message_allowed == True)\
+                                .all()
 
             results = []
             for token in tokens:
