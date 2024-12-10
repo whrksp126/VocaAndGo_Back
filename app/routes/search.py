@@ -1,8 +1,8 @@
 import json
 import re
 from flask import render_template, redirect, url_for, request, session, jsonify
-from sqlalchemy import text
-from sqlalchemy.orm import joinedload
+from sqlalchemy import text, select
+from sqlalchemy.orm import joinedload, contains_eager
 from app.routes import search_bp
 from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, VocaBookMap, VocaMeaningMap, VocaExampleMap, Bookstore
 
@@ -240,38 +240,69 @@ def get_unicode_range_for_initial(char):
 # @login_required
 @search_bp.route('/bookstore', methods=['GET'])
 def search_bookstore_all():
+    query = text("""
+        SELECT 
+            bs.id AS bookstore_id, bs.name AS bookstore_name, bs.downloads, bs.category, bs.color, bs.hide,
+            vb.id AS voca_book_id,
+            v.id AS voca_id, v.word, v.pronunciation,
+            vm.meaning AS meaning,
+            ve.exam_en AS example_en, ve.exam_ko AS example_ko
+        FROM bookstore bs
+        LEFT JOIN voca_book vb ON bs.book_id = vb.id
+        LEFT JOIN voca_book_map vbm ON vb.id = vbm.book_id
+        LEFT JOIN voca v ON vbm.voca_id = v.id
+        LEFT JOIN voca_meaning_map vmm ON v.id = vmm.voca_id
+        LEFT JOIN voca_meaning vm ON vmm.meaning_id = vm.id
+        LEFT JOIN voca_example_map vem ON v.id = vem.voca_id
+        LEFT JOIN voca_example ve ON vem.example_id = ve.id
+    """)
 
-    # 서점만 가져오는 쿼리 (temp)
-    bookstore_query = (db.session.query(Bookstore).all())
+    rows = db.session.execute(query).fetchall()
 
-    # 단어별로 뜻을 매핑하여 결과 생성
-    data = [] # 최종 데이터 담는 리스트
-    bookstore_map = {}
-    for bs in bookstore_query:
-        bookstore_map[bs.id] = {
-            'name': bs.name,
-            'downloads': bs.downloads,
-            'category': bs.category,
-            'color': bs.color,
-            'book_id': bs.book_id,
-        }
+    # 데이터 구조화
+    results = {}
+    for row in rows:
+        bookstore_id = row.bookstore_id
+        voca_id = row.voca_id
 
-    for bookstore_data in bookstore_map.values():
-        data.append(bookstore_data)
+        # 서점 정보 구성
+        if bookstore_id not in results:
+            results[bookstore_id] = {
+                "id": bookstore_id,
+                "name": row.bookstore_name,
+                "downloads": row.downloads,
+                "category": row.category,
+                "color": row.color,
+                "hide": row.hide,
+                "words": []
+            }
 
-    return jsonify({'code': 200, 'data' : data}), 200
+        # 단어 정보가 이미 추가되었는지 확인
+        word_entry = next((word for word in results[bookstore_id]["words"] if word["id"] == voca_id), None)
+        if not word_entry:
+            word_entry = {
+                "id": voca_id,
+                "word": row.word,
+                "pronunciation": row.pronunciation,
+                "meaning": [],
+                "examples": []
+            }
+            results[bookstore_id]["words"].append(word_entry)
 
-    '''
-    # 서점 쿼리 : 서점 데이터 검색 (ALL)
-    bookstore_query = (db.session.query(Bookstore)
-                .join(VocaBookMap, Bookstore.book_id == VocaBookMap.book_id).all()
-                )
-    # 여기서부터 다시 만들어 가야해,,,
-    # 서점 쿼리 : 서점 데이터 검색 (ALL)
-    bookstore_query = (db.session.query(Bookstore)
-                .join(VocaBookMap, Bookstore.book_id == VocaBookMap.book_id).all()
-                )
-    '''
+        # 단어 뜻 추가
+        if row.meaning and row.meaning not in word_entry["meaning"]:
+            word_entry["meaning"].append(row.meaning)
+
+        # 단어 예문 추가
+        if row.example_en and row.example_ko:
+            example = {"origin": row.example_en, "meaning": row.example_ko}
+            if example not in word_entry["examples"]:
+                word_entry["examples"].append(example)
+
+    # 결과를 리스트로 변환
+    final_results = list(results.values())
+    
+    return jsonify({'code': 200, 'data': final_results}), 200
 
     '''
     # bookstore 테이블의 모든 데이터를 가져옴
@@ -335,3 +366,35 @@ def search_bookstore_all():
 
     return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
+# 서점 다운로드 수 증가
+@search_bp.route('/bookstore/download', methods=['POST'])
+def bookstore_download():
+    id = request.json.get('id')
+
+    if not id:
+        return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
+    
+    try:
+        # id에 해당하는 bookstore 검색
+        bookstore = db.session.query(Bookstore).filter_by(id=id).first()
+
+        if not bookstore:
+            return jsonify({'code': 404, 'message': '해당하는 서점이 없습니다.'}), 404
+
+        # downloads 값 1 증가
+        bookstore.downloads = (bookstore.downloads or 0) + 1
+        print(bookstore.downloads)
+        db.session.commit()
+
+        return jsonify({'code': 200, 'data': {'id': id, 'downloads': bookstore.downloads}}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'code': 500, 'message': 'Internal Server Error'}), 500
+
+## 서점 단어장 색상 샘플
+# {"main":"#FF8DD4", "sub":"#FFD2EF", "background":"#FFEFFA"}
+# {"main":"#CD8DFF", "sub":"#EAD2FF", "background":"#F6EFFF"}
+# {"main":"#74D5FF", "sub":"#C6ECFF", "background":"#EAF6FF"}
+# {"main":"#42F98B", "sub":"#B2FDCC", "background":"#E2FFE8"}
+# {"main":"#FFBD3C", "sub":"#FFE5AE", "background":"#FFF6DF"}
