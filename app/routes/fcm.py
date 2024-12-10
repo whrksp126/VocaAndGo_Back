@@ -55,6 +55,7 @@ def send_notification_test():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     
+
 import threading
 @fcm_bp.route('/get_token', methods=['POST'])
 def get_token():
@@ -211,3 +212,18 @@ def send_fcm_message(app):
 #         atexit.register(lambda: scheduler.shutdown())
 #         app.config["scheduler"] = scheduler  # 스케줄러 인스턴스 저장
 #         print("Scheduler started!")  # 스케줄러가 처음 시작될 때 로그 추가
+
+
+@fcm_bp.route('/is_message_allowed', methods=['POST'])
+def is_message_allowed():
+    is_allowed = request.json.get('is_allowed')
+    user_id = current_user.id
+
+    wi
+    user_item = User.query.filter(User.id == user_id).first()
+
+    user_item.is_message_allowed = is_allowed
+    session.add(user_item)
+    session.commit()
+
+    return jsonify({'success': True}), 200
