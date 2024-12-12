@@ -371,10 +371,11 @@ def search_bookstore_all():
 
     return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
-# 서점 다운로드 수 증가 API
-@search_bp.route('/bookstore/download', methods=['GET'])
+# 서점 다운로드 수 증가
+@search_bp.route('/bookstore/download', methods=['POST'])
 def bookstore_download():
-    id = request.args.get('id')
+    #id = request.args.get('id')
+    id = 3
 
     if not id:
         return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
@@ -396,3 +397,10 @@ def bookstore_download():
     except Exception as e:
         db.session.rollback()
         return jsonify({'code': 500, 'message': 'Internal Server Error'}), 500
+
+## 서점 단어장 색상 샘플
+# {"main":"#FF8DD4", "sub":"#FFD2EF", "background":"#FFEFFA"}
+# {"main":"#CD8DFF", "sub":"#EAD2FF", "background":"#F6EFFF"}
+# {"main":"#74D5FF", "sub":"#C6ECFF", "background":"#EAF6FF"}
+# {"main":"#42F98B", "sub":"#B2FDCC", "background":"#E2FFE8"}
+# {"main":"#FFBD3C", "sub":"#FFE5AE", "background":"#FFF6DF"}

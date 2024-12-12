@@ -42,6 +42,7 @@ class User(db.Model):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_logged_at = Column(DateTime, nullable=True, default=None)
     refresh_token = Column(String(512), nullable=True)
+    is_message_allowed = Column(Boolean, nullable=False, default=1)
 
     def __init__(self, email, google_id, name, phone, refresh_token=None):
         self.email = email
