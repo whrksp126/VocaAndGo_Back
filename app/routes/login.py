@@ -91,7 +91,8 @@ def authorize_google():
             google_id=userinfo['id'],
             name=userinfo.get('name', ''),
             phone=None,
-            refresh_token=token['refresh_token']
+            refresh_token=token['refresh_token'],
+            is_message_allowed=1
         )
         db.session.add(user)
     else:
