@@ -9,8 +9,8 @@ from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, Voca
 
 from flask_login import current_user, login_required, login_user
 
-cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
-cache.init_app(search_bp)
+#cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
+#cache.init_app(search_bp)
 
 # @login_required
 @search_bp.route('/')
@@ -242,8 +242,8 @@ def get_unicode_range_for_initial(char):
 ## 서점 데이터 API
 # bookstore, voca, voca_meaning, voca_example 테이블의 모든 데이터를 가져옴
 # @login_required
+# @cache.cached(timeout=600, query_string=True)  # 60초 캐싱
 @search_bp.route('/bookstore', methods=['GET'])
-@cache.cached(timeout=600, query_string=True)  # 60초 캐싱
 def search_bookstore_all():
     query = text("""
         SELECT 
