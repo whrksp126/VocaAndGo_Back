@@ -1,12 +1,16 @@
 import json
 import re
 from flask import render_template, redirect, url_for, request, session, jsonify
+from flask_caching import Cache
 from sqlalchemy import text, select
 from sqlalchemy.orm import joinedload, contains_eager
 from app.routes import search_bp
 from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, VocaBookMap, VocaMeaningMap, VocaExampleMap, Bookstore
 
 from flask_login import current_user, login_required, login_user
+
+cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
+cache.init_app(search_bp)
 
 # @login_required
 @search_bp.route('/')
@@ -239,6 +243,7 @@ def get_unicode_range_for_initial(char):
 # bookstore, voca, voca_meaning, voca_example 테이블의 모든 데이터를 가져옴
 # @login_required
 @search_bp.route('/bookstore', methods=['GET'])
+@cache.cached(timeout=600, query_string=True)  # 60초 캐싱
 def search_bookstore_all():
     query = text("""
         SELECT 
@@ -366,11 +371,10 @@ def search_bookstore_all():
 
     return jsonify({'code': 200, 'data': 'ㅅ'}), 200
 
-# 서점 다운로드 수 증가
+# 서점 다운로드 수 증가 API
 @search_bp.route('/bookstore/download', methods=['GET'])
 def bookstore_download():
-    #id = request.args.get('id')
-    id = 3
+    id = request.args.get('id')
 
     if not id:
         return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
