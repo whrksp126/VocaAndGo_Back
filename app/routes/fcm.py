@@ -217,13 +217,12 @@ def create_scheduler(app):
     atexit.register(lambda: scheduler.shutdown())
     return scheduler
 
-s
+
 @fcm_bp.route('/is_message_allowed', methods=['POST'])
 def is_message_allowed():
     is_allowed = request.json.get('is_allowed')
     user_id = current_user.id
 
-    wi
     user_item = User.query.filter(User.id == user_id).first()
 
     user_item.is_message_allowed = is_allowed
