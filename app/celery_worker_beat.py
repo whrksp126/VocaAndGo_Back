@@ -48,7 +48,7 @@ celery.conf.beat_schedule = {
         'task': 'app.celery_worker_beat.send_fcm_message_task',
         # 'schedule': crontab(minute='*/1')
         # 'schedule': crontab(minute=0, hour='*/3')  # 매일 3시간마다 실행
-        'schedule': crontab(hour=13, minute=0, day_of_week='*') # KST 22:00
+        'schedule': crontab(hour=2, minute=0, day_of_week='*') # KST 11:00
     },
 }
 celery.conf.timezone = 'UTC'

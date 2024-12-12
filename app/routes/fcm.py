@@ -20,7 +20,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
 
-
 @fcm_bp.route('/fcm_html')
 def fcm_html():
     return render_template('fcm3.html')
@@ -223,7 +222,6 @@ def is_message_allowed():
     is_allowed = request.json.get('is_allowed')
     user_id = current_user.id
 
-    wi
     user_item = User.query.filter(User.id == user_id).first()
 
     user_item.is_message_allowed = is_allowed
