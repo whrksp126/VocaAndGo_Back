@@ -44,7 +44,7 @@ class User(db.Model):
     refresh_token = Column(String(512), nullable=True)
     is_message_allowed = Column(Boolean, nullable=False, default=1)
 
-    def __init__(self, email, google_id, name, phone, refresh_token=None, is_message_allowed):
+    def __init__(self, email, google_id, name, phone, is_message_allowed, refresh_token=None):
         self.email = email
         self.google_id = google_id
         self.name = name
