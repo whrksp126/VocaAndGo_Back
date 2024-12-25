@@ -17,7 +17,14 @@ from googleapiclient.http import MediaIoBaseUpload, MediaFileUpload, MediaIoBase
 from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
-from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
+# from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, OAUTH_REDIRECT_URI
+
+from dotenv import load_dotenv
+import os
+OAUTH_CLIENT_ID = os.getenv('OAUTH_CLIENT_ID')
+OAUTH_CLIENT_SECRET = os.getenv('OAUTH_CLIENT_SECRET')
+OAUTH_REDIRECT_URI = os.getenv('OAUTH_REDIRECT_URI')
+
 
 @login_bp.route('/')
 @login_required

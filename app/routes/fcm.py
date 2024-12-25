@@ -136,22 +136,6 @@ def send_push_notification(title, message, token):
     return result
 
 
-# FCM API 키 (Firebase Console에서 확인 가능)
-push_service = FCMNotification(service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
-                                 project_id='vocaandgo')
-
-
-# FCM 메시지 전송 함수
-def send_push_notification(title, message, token):
-    result = push_service.notify(fcm_token=token, 
-                                notification_title=title, 
-                                notification_body=message, 
-                                notification_image=None
-                            )
-
-    return result
-
-
 def send_fcm_message(app):
     with app.app_context():  # Flask 애플리케이션 컨텍스트 내에서 실행
 
