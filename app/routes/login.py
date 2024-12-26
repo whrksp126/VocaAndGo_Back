@@ -110,7 +110,7 @@ def authorize_google():
     session['user_id'] = user.google_id
     session['access_token'] = token['access_token']
     session['os'] = 'web'
-    login_user(user)
+    login_user(user.id)
 
     # 리다이렉트 URL 생성
     front_end_url = 'https://voca.ghmate.com/html/login.html'
@@ -153,7 +153,7 @@ def login_google_app():
     session['access_token'] = access_token
     session['user_id'] = google_id
     session['os'] = 'android'
-    login_user(user)
+    login_user(user.id)
 
 
     return jsonify({ 'code' : 200, 'status': 'success'})
