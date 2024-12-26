@@ -22,6 +22,7 @@
 
 
 # 사용자 로드 함수
+@login_manager.user_loader
 def load_user(user_id):
     from app.models.models import db, User
     

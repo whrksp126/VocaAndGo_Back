@@ -204,10 +204,9 @@ def create_scheduler(app):
 @fcm_bp.route('/is_message_allowed', methods=['POST'])
 def is_message_allowed():
     is_allowed = request.json.get('is_allowed')
-    # user_id = current_user.id
-    google_id = session['user_id']
+    user_id = current_user.id
 
-    user_item = User.query.filter(User.google_id == google_id).first()
+    user_item = User.query.filter(User.id == user_id).first()
 
     user_item.is_message_allowed = is_allowed
     session.add(user_item)
