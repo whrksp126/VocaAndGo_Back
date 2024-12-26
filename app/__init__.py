@@ -31,6 +31,27 @@ def create_app():
 
     login_manager.user_loader(load_user)
     login_manager.unauthorized_handler(unauthorized_callback)
+
+
+
+    # 사용자 로드 함수
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models.models import db, User
+        
+        print("@#$load_user")
+        user_item = db.session.query(User).filter(User.id == user_id).first()
+        return user_item
+
+    # 로그인이 되어있지 않은 경우
+    @login_manager.unauthorized_handler
+    def unauthorized_callback():
+        print("@#$unauthorized")
+        print('로그인이 되어있지 않은 경우')
+        return "로그인이 필요합니다.", 401
+
+
+
     
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models
