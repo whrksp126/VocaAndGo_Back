@@ -99,7 +99,7 @@ def authorize_google():
             name=userinfo.get('name', ''),
             phone=None,
             refresh_token=token['refresh_token'],
-            is_message_allowed=1
+            is_message_allowed=True
         )
         db.session.add(user)
     else:
