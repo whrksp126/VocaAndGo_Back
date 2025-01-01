@@ -450,10 +450,14 @@ def excel_to_json_app():
         headers=headers,
         params={'q': query, 'fields': 'files(id, name)'}
     )
-    
-    if response.status_code != 200:
-        return jsonify({'error': '폴더 존재를 확인하지 못했습니다.', 'details': response.json()}), response.status_code
-    
+
+    if response.status_code == 401:
+        return jsonify({"code": 401, "msg": "액세스 토큰이 만료되었습니다. 재인증해주세요."})
+    elif response.status_code == 403:
+        return jsonify({"code": 403, "msg": "Google Drive에 접근할 권한이 없습니다."})
+    elif response.status_code != 200:
+        return jsonify({'code': 500, 'msg': '폴더 존재 확인 실패', 'details': response.json()}), response.status_code
+
     folders = response.json().get('files', [])
     if not folders:
         return jsonify({"code": 404, "msg": "백업 폴더가 없습니다"})
@@ -468,12 +472,16 @@ def excel_to_json_app():
         params={'q': query, 'fields': 'files(id, name)'}
     )
 
-    if response.status_code != 200:
-        return jsonify({'error': '파일 존재를 확인하지 못했습니다.', 'details': response.json()}), response.status_code
-    
+    if response.status_code == 401:
+        return jsonify({"code": 401, "msg": "액세스 토큰이 만료되었습니다. 재인증해주세요."})
+    elif response.status_code == 403:
+        return jsonify({"code": 403, "msg": "Google Drive에 파일 목록을 조회할 권한이 없습니다."})
+    elif response.status_code != 200:
+        return jsonify({'code': 500, 'msg': '파일 존재 확인 실패', 'details': response.json()})
+
     files = response.json().get('files', [])
     if not files:
-        return jsonify({"code": 404, "msg": "백업 파일이 없습니다"})
+        return jsonify({"code": 404, "msg": "백업 파일이 없습니다"}), 404
 
     file_id = files[0].get('id')
 
@@ -481,8 +489,12 @@ def excel_to_json_app():
     download_url = f'https://www.googleapis.com/drive/v3/files/{file_id}?alt=media'
     response = requests.get(download_url, headers=headers, stream=True)
 
-    if response.status_code != 200:
-        return jsonify({'error': '파일을 다운로드하지 못했습니다.', 'details': response.json()}), response.status_code
+    if response.status_code == 401:
+        return jsonify({"code": 401, "msg": "액세스 토큰이 만료되었습니다. 재인증해주세요."})
+    elif response.status_code == 403:
+        return jsonify({"code": 403, "msg": "Google Drive 파일 다운로드 권한이 없습니다."})
+    elif response.status_code != 200:
+        return jsonify({'code': 500, 'msg': '파일 다운로드 실패', 'details': response.json()})
 
     # Step 4: 엑셀 파일을 JSON으로 변환
     output = BytesIO(response.content)
