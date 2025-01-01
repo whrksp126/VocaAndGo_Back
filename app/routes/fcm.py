@@ -228,4 +228,4 @@ def is_message_allowed():
     session.add(user_item)
     session.commit()
 
-    return jsonify({'success': True}), 200
+    return jsonify({'code': 200,'success': True}), 200

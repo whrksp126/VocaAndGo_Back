@@ -270,6 +270,7 @@ def backup_app():
         params={'q': query, 'fields': 'files(id, name)'}
     )
     
+    
     if response.status_code == 200:
         folders = response.json().get('files', [])
         
@@ -369,6 +370,10 @@ def backup_app():
 
     if upload_response.status_code == 200:
         return jsonify({'code': 200, 'msg': '파일이 성공적으로 업로드되었습니다.'})
+    elif upload_response.status_code == 401:
+        return jsonify({'code': 401, 'msg': '자격 증명이 잘못되었습니다. 재인증해주세요.'})
+    elif upload_response.status_code == 403:
+        return jsonify({'code': 403, 'msg': '권한이 부족합니다. Google Drive 파일을 읽거나 쓰는 권한을 요청하세요.'})
     else:
         return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
 
