@@ -112,6 +112,7 @@ def save_token():
         new_token_item = UserHasToken(
             user_id=user.id,
             token=fcm_token,
+            is_message_allowed=True
         )
         db.session.add(new_token_item)
         db.session.commit()
@@ -152,8 +153,7 @@ def send_fcm_message(app):
 
         try:
             tokens = db.session.query(UserHasToken)\
-                                .join(User, User.id == UserHasToken.user_id)\
-                                .filter(User.is_message_allowed == True)\
+                                .filter(UserHasToken.is_message_allowed == True)\
                                 .all()
 
             results = []
@@ -204,12 +204,16 @@ def create_scheduler(app):
 @fcm_bp.route('/is_message_allowed', methods=['POST'])
 def is_message_allowed():
     is_allowed = request.json.get('is_allowed')
+    fcm_token = request.json.get('fcm_token')
     user_id = current_user.id
 
-    user_item = User.query.filter(User.id == user_id).first()
+    user_has_token_item = UserHasToken.query\
+                                    .filter(UserHasToken.user_id == user_id)\
+                                    .filter(UserHasToken.token == fcm_token)\
+                                    .first()
 
-    user_item.is_message_allowed = is_allowed
-    session.add(user_item)
+    user_has_token_item.is_message_allowed = is_allowed
+    session.add(user_has_token_item)
     session.commit()
 
     return jsonify({'success': True}), 200

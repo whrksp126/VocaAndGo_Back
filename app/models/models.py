@@ -42,15 +42,13 @@ class User(db.Model):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     last_logged_at = Column(DateTime, nullable=True, default=None)
     refresh_token = Column(String(512), nullable=True)
-    is_message_allowed = Column(Boolean, nullable=False, default=True)
 
-    def __init__(self, email, google_id, name, phone, is_message_allowed, refresh_token=None):
+    def __init__(self, email, google_id, name, phone, refresh_token=None):
         self.email = email
         self.google_id = google_id
         self.name = name
         self.phone = phone
         self.refresh_token = refresh_token
-        self.is_message_allowed = is_message_allowed
     
     def is_active(self):
         return True
@@ -66,7 +64,12 @@ class UserHasToken(db.Model):
     __tablename__ = 'user_has_token'
     user_id = Column(BinaryUUID, ForeignKey('user.id'), primary_key=True, nullable=False)
     token = Column(String(256), primary_key=True, nullable=False)
+    is_message_allowed = Column(Boolean, nullable=False, default=True)
 
+    def __init__(self, user_id, token, is_message_allowed):
+        self.user_id = user_id
+        self.token = token
+        self.is_message_allowed = is_message_allowed
 
 ##############
 # 기본 테이블 #
