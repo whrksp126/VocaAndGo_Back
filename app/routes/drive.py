@@ -296,13 +296,15 @@ def backup_app():
                 folder_id = folder_response.json().get('id')
                 print(f"폴더 생성됨: {folder_name} (ID: {folder_id})")
             else:
-                return jsonify({'error': 'Failed to create folder', 'details': folder_response.json()}), folder_response.status_code
+                return jsonify({'code': 500, 'msg': '폴더를 생성하지 못했습니다.', 'details': folder_response.json()})
+                # return jsonify({'error': 'Failed to create folder', 'details': folder_response.json()}), folder_response.status_code
         else:
             # 폴더가 이미 있는 경우 해당 폴더 ID 사용
             folder_id = folders[0].get('id')
             print(f"기존 폴더 사용: {folder_name} (ID: {folder_id})")
     else:
-        return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
+        return jsonify({'code': 500, 'msg': '폴더 존재를 확인하지 못했습니다.', 'details': response.json()})
+        # return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
 
     # Step 2.1: 동일한 파일명이 있으면 삭제
     query = f"'{folder_id}' in parents and name='{filename}' and trashed=false"
@@ -322,9 +324,11 @@ def backup_app():
             if delete_response.status_code == 204:
                 print(f"기존 파일 삭제됨: {file['name']} (ID: {file['id']})")
             else:
-                return jsonify({'error': 'Failed to delete existing file', 'details': delete_response.json()}), delete_response.status_code
+                return jsonify({'code': 500, 'msg': '기존 파일을 삭제하지 못했습니다.', 'details': delete_response.json()})
+                # return jsonify({'error': 'Failed to delete existing file', 'details': delete_response.json()}), delete_response.status_code
     else:
-        return jsonify({'error': 'Failed to check existing files', 'details': file_check_response.json()}), file_check_response.status_code
+        return jsonify({'code': 500, 'msg': '기존 파일을 확인하지 못했습니다.', 'details': file_check_response.json()})
+        # return jsonify({'error': 'Failed to check existing files', 'details': file_check_response.json()}), file_check_response.status_code
 
     # Step 3: 엑셀 파일 생성
     output = BytesIO()
@@ -381,7 +385,8 @@ def backup_app():
     elif upload_response.status_code == 403:
         return jsonify({'code': 403, 'msg': '권한이 부족합니다. Google Drive 파일을 읽거나 쓰는 권한을 요청하세요.'})
     else:
-        return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
+        return jsonify({'code': 500, 'msg': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()})
+        # return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
 
 @drive_bp.route('/excel_to_json', methods=['GET'])
 @login_required
