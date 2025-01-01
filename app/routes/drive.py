@@ -275,11 +275,10 @@ def backup_app():
         headers=headers,
         params={'q': query, 'fields': 'files(id, name)'}
     )
-    
-    
+
     if response.status_code == 200:
         folders = response.json().get('files', [])
-        
+
         if not folders:
             # Step 2: 폴더가 없으면 새 폴더 생성
             folder_metadata = {
@@ -291,20 +290,24 @@ def backup_app():
                 headers=headers,
                 json=folder_metadata
             )
-            
+
             if folder_response.status_code == 200:
                 folder_id = folder_response.json().get('id')
                 print(f"폴더 생성됨: {folder_name} (ID: {folder_id})")
+            elif folder_response.status_code == 403:
+                return jsonify({'code': 403, 'msg': '폴더 생성 권한이 없습니다. 권한을 확인해주세요.'})
             else:
-                return jsonify({'code': 500, 'msg': '폴더를 생성하지 못했습니다.', 'details': folder_response.json()})
-                # return jsonify({'error': 'Failed to create folder', 'details': folder_response.json()}), folder_response.status_code
+                return jsonify({'code': 500, 'msg': '폴더 생성 실패', 'details': folder_response.json()}), folder_response.status_code
         else:
             # 폴더가 이미 있는 경우 해당 폴더 ID 사용
             folder_id = folders[0].get('id')
             print(f"기존 폴더 사용: {folder_name} (ID: {folder_id})")
+    elif response.status_code == 401:
+        return jsonify({'code': 401, 'msg': '액세스 토큰이 만료되었습니다. 재인증해주세요.'})
+    elif response.status_code == 403:
+        return jsonify({'code': 403, 'msg': 'Google Drive에 접근할 권한이 없습니다.'})
     else:
-        return jsonify({'code': 500, 'msg': '폴더 존재를 확인하지 못했습니다.', 'details': response.json()})
-        # return jsonify({'error': 'Failed to check folder existence', 'details': response.json()}), response.status_code
+        return jsonify({'code': 500, 'msg': '폴더 존재 확인 실패', 'details': response.json()}), response.status_code
 
     # Step 2.1: 동일한 파일명이 있으면 삭제
     query = f"'{folder_id}' in parents and name='{filename}' and trashed=false"
@@ -313,7 +316,7 @@ def backup_app():
         headers=headers,
         params={'q': query, 'fields': 'files(id, name)'}
     )
-    
+
     if file_check_response.status_code == 200:
         existing_files = file_check_response.json().get('files', [])
         for file in existing_files:
@@ -323,12 +326,16 @@ def backup_app():
             )
             if delete_response.status_code == 204:
                 print(f"기존 파일 삭제됨: {file['name']} (ID: {file['id']})")
+            elif delete_response.status_code == 403:
+                return jsonify({'code': 403, 'msg': '파일 삭제 권한이 없습니다. 관리자에게 문의하세요.'})
             else:
-                return jsonify({'code': 500, 'msg': '기존 파일을 삭제하지 못했습니다.', 'details': delete_response.json()})
-                # return jsonify({'error': 'Failed to delete existing file', 'details': delete_response.json()}), delete_response.status_code
+                return jsonify({'code': 500, 'msg': '기존 파일 삭제 실패', 'details': delete_response.json()}), delete_response.status_code
+    elif file_check_response.status_code == 401:
+        return jsonify({'code': 401, 'msg': '액세스 토큰이 만료되었습니다. 재인증해주세요.'})
+    elif file_check_response.status_code == 403:
+        return jsonify({'code': 403, 'msg': 'Google Drive 파일 목록에 접근할 권한이 없습니다.'})
     else:
-        return jsonify({'code': 500, 'msg': '기존 파일을 확인하지 못했습니다.', 'details': file_check_response.json()})
-        # return jsonify({'error': 'Failed to check existing files', 'details': file_check_response.json()}), file_check_response.status_code
+        return jsonify({'code': 500, 'msg': '기존 파일 확인 실패', 'details': file_check_response.json()}), file_check_response.status_code
 
     # Step 3: 엑셀 파일 생성
     output = BytesIO()
@@ -366,12 +373,12 @@ def backup_app():
         'parents': [folder_id],  # 파일을 업로드할 폴더 지정
         'mimeType': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     }
-    
+
     media = {
         'metadata': ('metadata', json.dumps(file_metadata), 'application/json'),
         'file': ('file', output, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     }
-    
+
     upload_response = requests.post(
         'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
         headers=headers,
@@ -381,12 +388,11 @@ def backup_app():
     if upload_response.status_code == 200:
         return jsonify({'code': 200, 'msg': '파일이 성공적으로 업로드되었습니다.'})
     elif upload_response.status_code == 401:
-        return jsonify({'code': 401, 'msg': '자격 증명이 잘못되었습니다. 재인증해주세요.'})
+        return jsonify({'code': 401, 'msg': '액세스 토큰이 만료되었습니다. 재인증해주세요.'})
     elif upload_response.status_code == 403:
-        return jsonify({'code': 403, 'msg': '권한이 부족합니다. Google Drive 파일을 읽거나 쓰는 권한을 요청하세요.'})
+        return jsonify({'code': 403, 'msg': 'Google Drive에 파일을 업로드할 권한이 없습니다.'})
     else:
-        return jsonify({'code': 500, 'msg': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()})
-        # return jsonify({'error': '파일을 업로드하지 못했습니다.', 'details': upload_response.json()}), upload_response.status_code
+        return jsonify({'code': 500, 'msg': '파일 업로드 실패', 'details': upload_response.json()})
 
 @drive_bp.route('/excel_to_json', methods=['GET'])
 @login_required
