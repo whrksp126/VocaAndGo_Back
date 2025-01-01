@@ -16,7 +16,13 @@ from urllib.parse import urlencode
 
 from requests_oauthlib import OAuth2Session
 import pandas as pd
-from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
+# from config import OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET
+
+from dotenv import load_dotenv
+import os
+OAUTH_CLIENT_ID = os.getenv('OAUTH_CLIENT_ID')
+OAUTH_CLIENT_SECRET = os.getenv('OAUTH_CLIENT_SECRET')
+OAUTH_REDIRECT_URI = os.getenv('OAUTH_REDIRECT_URI')
 
 # 더미 데이터
 data = [
