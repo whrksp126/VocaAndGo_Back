@@ -116,14 +116,16 @@ def save_token():
         )
         db.session.add(new_token_item)
         db.session.commit()
-        return jsonify({'code': 201, 'msg': "토큰이 성공적으로 저장되었습니다"})
+        return jsonify({'code': 200, 'msg': "토큰이 성공적으로 저장되었습니다"})
     
-    return jsonify({'code': 200, 'msg': "토큰이 이미 존재합니다"})
+    return jsonify({'code': 409, 'msg': "토큰이 이미 존재합니다"})
 
 
 # FCM API 키 (Firebase Console에서 확인 가능)
-push_service = FCMNotification(service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
-                                 project_id='vocaandgo')
+push_service = FCMNotification(
+        service_account_file='app/config/vocaandgo-firebase-adminsdk-xyi9u-e4f0ccc423.json',
+        project_id='vocaandgo'
+    )
 
 
 # FCM 메시지 전송 함수

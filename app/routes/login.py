@@ -177,7 +177,8 @@ def refresh_access_token(user):
 @login_bp.route("/logout")
 @login_required
 def logout():
-    session.pop('token', None)
+    session.pop('access_token', None)
     session.pop('user_id', None)
+    session.pop('os', None)
     logout_user()
     return render_template('index.html')
