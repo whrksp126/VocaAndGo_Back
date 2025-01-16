@@ -215,7 +215,7 @@ def is_message_allowed():
                                     .first()
 
     user_has_token_item.is_message_allowed = is_allowed
-    session.add(user_has_token_item)
-    session.commit()
+    db.session.add(user_has_token_item)
+    db.session.commit()
 
     return jsonify({'code': 200,'success': True}), 200
