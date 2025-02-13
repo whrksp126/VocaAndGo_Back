@@ -44,13 +44,13 @@ class User(db.Model):
     refresh_token = Column(String(512), nullable=True)
     is_message_allowed = Column(Boolean, nullable=False, default=1)
 
-    def __init__(self, email, google_id, name, phone, refresh_token=None, is_message_allowed):
+    def __init__(self, email, google_id, name, phone, refresh_token=None):#, is_message_allowed):
         self.email = email
         self.google_id = google_id
         self.name = name
         self.phone = phone
         self.refresh_token = refresh_token
-        self.is_message_allowed = is_message_allowed
+        #self.is_message_allowed = is_message_allowed
     
     def is_active(self):
         return True
@@ -94,6 +94,7 @@ class Voca(db.Model):
     id = Column(Integer, primary_key=True)
     word = Column(String(255), nullable=False)
     pronunciation = Column(String(100), nullable=True)
+    verb_forms = Column(Text, nullable=True)
 
     # 관계 정의
     voca_books = relationship("VocaBookMap", back_populates="voca")
@@ -104,8 +105,9 @@ class Voca(db.Model):
         self.word = word
         self.pronunciation = pronunciation
 
-    def __repr__(self):
-        return f"<Voca(word='{self.word}', pronunciation='{self.pronunciation}')>"
+    #def __repr__(self):
+    #    return f"<Voca(word='{self.word}', pronunciation='{self.pronunciation}')>"
+    
 # 단어 뜻
 class VocaMeaning(db.Model):
     __tablename__ = 'voca_meaning'
