@@ -31,7 +31,7 @@ def create_app():
 
     login_manager.user_loader(load_user)
     login_manager.unauthorized_handler(unauthorized_callback)
-    
+
     # # 모든 모델 클래스들을 한번에 import
     from app.models import models
     # from app.login_manager import load_user, unauthorized_callback

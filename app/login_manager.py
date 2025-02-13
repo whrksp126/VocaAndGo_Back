@@ -25,8 +25,9 @@
 def load_user(user_id):
     from app.models.models import db, User
     
-    print("@#$load_user")
+    print("@#$load_user,user_id,",user_id)
     user_item = db.session.query(User).filter(User.id == user_id).first()
+    print("###user_item")
     return user_item
 
 # 로그인이 되어있지 않은 경우
