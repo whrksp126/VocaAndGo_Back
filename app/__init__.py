@@ -13,7 +13,7 @@ import json
 from app.login_manager import load_user, unauthorized_callback
 
 db = SQLAlchemy()
-migrate = Migrate()     
+migrate = Migrate()
 login_manager = LoginManager()
 
 

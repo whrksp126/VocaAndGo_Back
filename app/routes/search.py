@@ -1,7 +1,6 @@
 import json
 import re
 from flask import render_template, redirect, url_for, request, session, jsonify
-from flask_caching import Cache
 from sqlalchemy import text, select
 from sqlalchemy.orm import joinedload, contains_eager
 from app.routes import search_bp
