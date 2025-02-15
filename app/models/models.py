@@ -97,6 +97,7 @@ class Voca(db.Model):
     id = Column(Integer, primary_key=True)
     word = Column(String(255), nullable=False)
     pronunciation = Column(String(100), nullable=True)
+    verb_forms = Column(Text, nullable=True)
 
     # 관계 정의
     voca_books = relationship("VocaBookMap", back_populates="voca")
@@ -107,8 +108,9 @@ class Voca(db.Model):
         self.word = word
         self.pronunciation = pronunciation
 
-    def __repr__(self):
-        return f"<Voca(word='{self.word}', pronunciation='{self.pronunciation}')>"
+    #def __repr__(self):
+    #    return f"<Voca(word='{self.word}', pronunciation='{self.pronunciation}')>"
+    
 # 단어 뜻
 class VocaMeaning(db.Model):
     __tablename__ = 'voca_meaning'

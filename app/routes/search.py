@@ -5,7 +5,6 @@ from sqlalchemy import text, select
 from sqlalchemy.orm import joinedload, contains_eager
 from app.routes import search_bp
 from app.models.models import db, VocaBook, Voca, VocaMeaning, VocaExample, VocaBookMap, VocaMeaningMap, VocaExampleMap, Bookstore
-
 from flask_login import current_user, login_required, login_user
 
 #cache = Cache(config={'CACHE_TYPE': 'RedisCache'})
@@ -373,8 +372,7 @@ def search_bookstore_all():
 # 서점 다운로드 수 증가
 @search_bp.route('/bookstore/download', methods=['POST'])
 def bookstore_download():
-    #id = request.args.get('id')
-    id = 3
+    id = request.args.get('id')
 
     if not id:
         return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
