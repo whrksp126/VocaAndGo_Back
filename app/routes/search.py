@@ -372,8 +372,8 @@ def search_bookstore_all():
 # 서점 다운로드 수 증가
 @search_bp.route('/bookstore/download', methods=['POST'])
 def bookstore_download():
-    id = request.args.get('id')
-
+    data = request.json
+    id = data.get('id')
     if not id:
         return jsonify({'code': 400, 'message': '없는 ID 입니다.'}), 400
     
