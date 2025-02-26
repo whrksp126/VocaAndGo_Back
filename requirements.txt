@@ -117,7 +117,6 @@ prompt-toolkit==3.0.30
 propcache==0.2.0
 props==0.0.3
 proto-plus==1.23.0
-protobuf==4.25.3
 psutil==5.9.1
 psycopg2==2.9.5
 pure-eval==0.2.2
