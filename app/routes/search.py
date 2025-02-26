@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from flask import render_template, redirect, url_for, request, session, jsonify
 from flask_caching import Cache
 from sqlalchemy import text, select
@@ -237,75 +238,76 @@ def get_unicode_range_for_initial(char):
 ##############
 ## 서점 검색 ##
 ##############
-
 ## 서점 데이터 API
 # bookstore, voca, voca_meaning, voca_example 테이블의 모든 데이터를 가져옴
 # @login_required
 # @cache.cached(timeout=600, query_string=True)  # 60초 캐싱
 @search_bp.route('/bookstore', methods=['GET'])
 def search_bookstore_all():
+    #start_time = time.time()
+
+    # MySQL용 JSON 그룹화 쿼리
     query = text("""
         SELECT 
-            bs.id AS bookstore_id, bs.name AS bookstore_name, bs.downloads, bs.category, bs.color, bs.hide,
-            vb.id AS voca_book_id,
-            v.id AS voca_id, v.word, v.pronunciation,
-            vm.meaning AS meaning,
-            ve.exam_en AS example_en, ve.exam_ko AS example_ko
+            bs.id AS bookstore_id, 
+            bs.name AS bookstore_name, 
+            bs.downloads, 
+            bs.category, 
+            bs.color, 
+            bs.hide,
+
+            -- 단어 목록을 JSON 배열로 변환
+            COALESCE(JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id', v.id,
+                    'word', v.word,
+                    'pronunciation', v.pronunciation,
+                    'meaning', (
+                        SELECT JSON_ARRAYAGG(vm.meaning) 
+                        FROM voca_meaning_map vmm 
+                        JOIN voca_meaning vm ON vmm.meaning_id = vm.id 
+                        WHERE vmm.voca_id = v.id
+                    ),
+                    'examples', (
+                        SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'origin', ve.exam_en, 
+                                'meaning', ve.exam_ko
+                            )
+                        )
+                        FROM voca_example_map vem
+                        JOIN voca_example ve ON vem.example_id = ve.id
+                        WHERE vem.voca_id = v.id
+                    )
+                )
+            ), JSON_ARRAY()) AS words
+
         FROM bookstore bs
         LEFT JOIN voca_book vb ON bs.book_id = vb.id
         LEFT JOIN voca_book_map vbm ON vb.id = vbm.book_id
         LEFT JOIN voca v ON vbm.voca_id = v.id
-        LEFT JOIN voca_meaning_map vmm ON v.id = vmm.voca_id
-        LEFT JOIN voca_meaning vm ON vmm.meaning_id = vm.id
-        LEFT JOIN voca_example_map vem ON v.id = vem.voca_id
-        LEFT JOIN voca_example ve ON vem.example_id = ve.id
+        GROUP BY bs.id
     """)
 
+    # 데이터 조회
     rows = db.session.execute(query).fetchall()
 
-    # 데이터 구조화
-    results = {}
-    for row in rows:
-        bookstore_id = row.bookstore_id
-        voca_id = row.voca_id
+    # 결과 가공
+    final_results = [{
+        "id": row.bookstore_id,
+        "name": row.bookstore_name,
+        "downloads": row.downloads,
+        "category": row.category,
+        "color": row.color,
+        "hide": row.hide,
+        "words": row.words  # 이미 JSON 형태이므로 그대로 사용
+    } for row in rows]
 
-        # 서점 정보 구성
-        if bookstore_id not in results:
-            results[bookstore_id] = {
-                "id": bookstore_id,
-                "name": row.bookstore_name,
-                "downloads": row.downloads,
-                "category": row.category,
-                "color": row.color,
-                "hide": row.hide,
-                "words": []
-            }
+    # 실행 시간 측정
+    #end_time = time.time()
+    #execution_time = end_time - start_time
+    #print(f"API 실행 시간: {execution_time:.3f}초")
 
-        # 단어 정보가 이미 추가되었는지 확인
-        word_entry = next((word for word in results[bookstore_id]["words"] if word["id"] == voca_id), None)
-        if not word_entry:
-            word_entry = {
-                "id": voca_id,
-                "word": row.word,
-                "pronunciation": row.pronunciation,
-                "meaning": [],
-                "examples": []
-            }
-            results[bookstore_id]["words"].append(word_entry)
-
-        # 단어 뜻 추가
-        if row.meaning and row.meaning not in word_entry["meaning"]:
-            word_entry["meaning"].append(row.meaning)
-
-        # 단어 예문 추가
-        if row.example_en and row.example_ko:
-            example = {"origin": row.example_en, "meaning": row.example_ko}
-            if example not in word_entry["examples"]:
-                word_entry["examples"].append(example)
-
-    # 결과를 리스트로 변환
-    final_results = list(results.values())
-    
     return jsonify({'code': 200, 'data': final_results}), 200
 
     '''
