@@ -292,15 +292,20 @@ def search_bookstore_all():
     rows = db.session.execute(query).fetchall()
 
     # 결과 가공
-    final_results = [{
-        "id": row.bookstore_id,
-        "name": row.bookstore_name,
-        "downloads": row.downloads,
-        "category": row.category,
-        "color": row.color,
-        "hide": row.hide,
-        "words": row.words  # 이미 JSON 형태이므로 그대로 사용
-    } for row in rows]
+    final_results = []
+    for row in rows:
+        words = json.loads(row.words) if row.words else []
+        
+        final_results.append({
+            "id": row.bookstore_id,
+            "name": row.bookstore_name,
+            "downloads": row.downloads,
+            "category": row.category,
+            "color": json.loads(row.color) if row.color else {},
+            "hide": row.hide,
+            "words": words
+        })
+    #temp = final_results[0]
 
     # 실행 시간 측정
     #end_time = time.time()
